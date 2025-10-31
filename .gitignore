@@ -40,7 +40,7 @@ obj/
 # ASP.NET / Blazor-specific
 ###############################
 # Compiled Razor pages
-**/wwwroot/
+
 **/bin/
 **/obj/
 **/Debug/
