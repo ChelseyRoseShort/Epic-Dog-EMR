@@ -1,0 +1,101 @@
+@page "/"
+@using EpicPetEMR_Ui.Services
+@using EpicPetEMR.Shared.Models 
+@inject PetApi Api
+
+
+
+<div class="board">
+    <div class="grid" style="grid-template-columns:@GridTemplateColumns">
+        <!-- corner header -->
+        <div class="cell header sticky-left corner">Patient</div>
+
+        <!-- hour headers -->
+        @for (var h = StartHour; h <= EndHour; h++)
+        {
+            <div class="cell header">@($"{h:00}:00")</div>
+        } 
+
+        <!-- data rows -->
+        @for (int idx = 0; idx < _pets.Count; idx++)
+        {
+            var p = _pets[idx];
+            var rowClass = (idx % 2 == 0) ? "row-even" : "row-odd";
+
+            <!-- left sticky name cell -->
+            <div class="cell sticky-left @rowClass">@p.Name</div>
+
+            <!-- hour cells -->
+            @for (var h = StartHour; h <= EndHour; h++)
+            {
+                string? text = null;
+                var hasText = Tasks.TryGetValue(p.Id, out var perHour) && perHour.TryGetValue(h, out text);
+                var done = Completed.Contains((p.Id, h));
+
+                <div class="cell @rowClass @(done ? "done" : null)"
+                     data-patient-id="@p.Id"
+                     data-hour="@h"
+                     @onclick="@(() => Toggle(p.Id, h))">
+                    @if (hasText && text is not null)
+                    {
+                        <span class="task-dot"></span>
+                        <span class="task">@text</span>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int StartHour { get; set; } = 7;   // 07:00
+    [Parameter] public int EndHour { get; set; } = 19;    // 19:00 (7 PM)
+      private bool _loading = true;
+    private string? _error;
+    private List<PetDto> _pets = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _pets = await Api.GetPetsAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+    private int HourCount => EndHour - StartHour + 1;
+    private string GridTemplateColumns => $"var(--left-col) repeat({HourCount}, var(--cell))";
+
+    // Example data – replace/bind with DB/API later
+    public List<PatientRow> Patients { get; set; } = new();
+
+    
+
+    // tasks[patientId][hour] = "task text"
+    public Dictionary<int, Dictionary<int, string>> Tasks { get; set; } = new()
+    {
+        [1] = new() { [8] = "AM meds", [12] = "Vitals", [18] = "PM meds" },
+        [2] = new() { [7] = "Labs", [9] = "PT eval", [11] = "I/O check" },
+        [3] = new() { [14] = "Glucose" },
+        [4] = new() { [10] = "New order", [16] = "Shift reassess" }
+    };
+
+    private HashSet<(int patientId, int hour)> Completed { get; } = new();
+
+    private void Toggle(int patientId, int hour)
+    {
+        var key = (patientId, hour);
+        if (!Completed.Add(key))
+        {
+            Completed.Remove(key);
+        }
+    }
+
+    public record PatientRow(int Id, string Name);
+}

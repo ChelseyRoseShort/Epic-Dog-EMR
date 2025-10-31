@@ -1,0 +1,6 @@
+@EpicPetEMR_HostAddress = http://localhost:5070
+
+GET {{EpicPetEMR_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

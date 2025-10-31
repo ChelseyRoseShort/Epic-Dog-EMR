@@ -1,0 +1,98 @@
+﻿@page "/home"
+@using System.Net.Http.Json
+
+<PageTitle>Home</PageTitle>
+
+<h1>Pets</h1>
+
+@if (loading)
+{
+    <p>Loading…</p>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <p class="text-danger">Error: @error</p>
+}
+else if (pets?.Count is 0 or null)
+{
+    <p>No pets yet. Try seeding from the API.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Breed</th>
+                <th>Species</th>
+                <th>Sex</th>
+                <th>Weight</th>
+                <th>DOB</th>
+                <th>Family</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in pets!)
+        {
+            <tr>
+                <td>@p.Id</td>
+                <td>@p.Name</td>
+                <td>@p.Breed</td>
+                <td>@p.Species</td>
+                <td>@p.Sex</td>
+                <td>@(p.Weight is null ? "-" : $"{p.Weight} {p.WeightUnit}")</td>
+                <td>@(p.DateOfBirth?.ToString("yyyy-MM-dd") ?? "-")</td>
+                <td>@p.Family?.Name</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<PetDto>? pets;
+    private bool loading = true;
+    private string? error;
+
+    // For Blazor WASM, HttpClient is injected by default
+    [Inject] private HttpClient Http { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Call the API directly (different port)
+            pets = await Http.GetFromJsonAsync<List<PetDto>>(
+                "http://localhost:5070/demo/pets");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    // Match the shape returned by /demo/pets
+    public class PetDto
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Breed { get; set; }
+        public string? Species { get; set; }
+        public string? Sex { get; set; }
+        public decimal? Weight { get; set; }
+        public string? WeightUnit { get; set; }
+        public DateOnly? DateOfBirth { get; set; }
+        public FamilyDto? Family { get; set; }
+    }
+
+    public class FamilyDto
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+    }
+}

@@ -1,0 +1,231 @@
+@page "/pets"
+@using EpicPetEMR_Ui.Services
+@using EpicPetEMR.Shared.Models
+@using Microsoft.AspNetCore.Components.Forms
+@inject PetApi Api
+
+@if (isPageDataLoading)
+{
+    <p>Loading pets…</p>
+}
+else if (loadErrorMessage is not null)
+{
+    <p class="text-danger">@loadErrorMessage</p>
+}
+else
+{
+    if (petCurrentlyBeingEdited is not null)
+    {
+        <!-- When editing, wrap the entire table in a single EditForm so inputs are valid and submit works -->
+        
+
+        <EditForm Model="@petDraftBeingEdited" OnValidSubmit="@SaveChangesAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Pet test  </th>
+                        <th>Breed</th>
+                        <th>Species</th>
+                        <th>Sex</th>
+                        <th>Weight</th>
+                         <th></th>
+                        <th>DOB</th>
+                        <th>Family</th>
+                        <th style="width:180px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var currentPet in petsLoadedFromApi)
+                {
+                    if (object.ReferenceEquals(currentPet, petCurrentlyBeingEdited))
+                    {
+                        <!-- Edit row -->
+                        <tr>
+                       
+                            <td><InputText class="form-control" @bind-Value="petDraftBeingEdited.Name" /></td>
+                            <td><InputText class="form-control" @bind-Value="petDraftBeingEdited.Breed" /></td>
+                            <td><InputText class="form-control" @bind-Value="petDraftBeingEdited.Species" /></td>
+                            <td><InputText class="form-control" @bind-Value="petDraftBeingEdited.Sex" /></td>
+                            <td><InputNumber style="width:120px;" class="form-control" @bind-Value="petDraftBeingEdited.Weight" /></td>
+                            <td>
+                                <div class="input-group">
+                                    <InputSelect @bind-Value="@petDraftBeingEdited.WeightUnit" TValue="string" style="width:75px;" class="form-select unit-select">
+                                    
+                                    <option value="kg">kg</option>
+                                    <option value="lbs">lbs</option>
+                                    </InputSelect>
+                                      
+                           
+                                </div>
+                            </td>
+                            <td>
+                                <!-- If your project is on .NET 8, DateOnly? works. Otherwise change to DateTime? -->
+                                <InputDate DateFormat="yyyy-MM-dd" class="form-control" @bind-Value="petDraftBeingEdited.DateOfBirth" />
+                            </td>
+                            <td>@petDraftBeingEdited.Family?.Name</td>
+                            <td>
+                                <button type="submit" class="btn btn-success btn-sm me-2">Save</button>
+                                <button type="button" class="btn btn-secondary btn-sm" @onclick="CancelEdit">Cancel</button>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <!-- View row -->
+                        <tr>
+                            <td>@currentPet.Name</td>
+                            <td>@currentPet.Breed</td>
+                            <td>@currentPet.Species</td>
+                            <td>@currentPet.Sex</td>
+                            <td>@(currentPet.Weight is null ? "-" : $"{currentPet.Weight} {currentPet.WeightUnit}")</td>
+                            <td>@(currentPet.DateOfBirth?.ToString("yyyy-MM-dd") ?? "-")</td>
+                            <td>@currentPet.Family?.Name</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" @onclick="() => EnableEdit(currentPet)">Edit</button>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </EditForm>
+    }
+    else
+    {
+        <!-- Not editing anything: render a simple view-only table -->
+       
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Pet</th>
+                    <th>Breed</th>
+                    <th>Species</th>
+                    <th>Sex</th>
+                    <th>Weight</th>
+                    <th>DOB</th>
+                    <th>Family</th>
+                    <th style="width:180px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var currentPet in petsLoadedFromApi)
+            {
+                <tr>
+                    <td>@currentPet.Name</td>
+                    <td>@currentPet.Breed</td>
+                    <td>@currentPet.Species</td>
+                    <td>@currentPet.Sex</td>
+                    <td>@(currentPet.Weight is null ? "-" : $"{currentPet.Weight} {currentPet.WeightUnit}")</td>
+                    <td>@(currentPet.DateOfBirth?.ToString("yyyy-MM-dd") ?? "-")</td>
+                    <td>@currentPet.Family?.Name</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" @onclick="() => EnableEdit(currentPet)">Edit</button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        
+
+    <style>
+    .unit-select select {
+        width:120px;
+
+    }
+    
+    </style>
+    }
+}
+
+@code {
+    // ----- State fields with explicit names -----
+    private bool isPageDataLoading = true;
+    private string? loadErrorMessage;
+
+    private string weightUnit = "kg";
+
+    private List<PetDto> petsLoadedFromApi = new();
+
+    // The pet row currently in "edit mode" (reference to the original item in the list)
+    private PetDto? petCurrentlyBeingEdited;
+
+    // A separate, editable draft copy of the pet. We only copy it back on Save.
+    private PetDto petDraftBeingEdited = new();
+
+    // ----- Lifecycle -----
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            petsLoadedFromApi = await Api.GetPetsAsync();
+        }
+        catch (Exception ex)
+        {
+            loadErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isPageDataLoading = false;
+        }
+    }
+
+    // ----- Commands -----
+    private void EnableEdit(PetDto petToEdit)
+    {
+        petCurrentlyBeingEdited = petToEdit;
+        petDraftBeingEdited = CreateDeepCopyOfPet(petToEdit); // work on a copy so Cancel discards changes
+    }
+
+    private void CancelEdit()
+    {
+        // Throw away the draft and exit edit mode
+        petCurrentlyBeingEdited = null;
+        petDraftBeingEdited = new();
+        StateHasChanged();
+    }
+
+    private async Task SaveChangesAsync()
+    {
+        // Save changes to the API, then copy draft values back into the original list item
+        if (petCurrentlyBeingEdited is null)
+            return;
+
+        await Api.UpdatePetAsync(petDraftBeingEdited);
+
+        CopyPetValuesIntoExistingInstance(source: petDraftBeingEdited, destination: petCurrentlyBeingEdited);
+
+        // Exit edit mode
+        petCurrentlyBeingEdited = null;
+        petDraftBeingEdited = new();
+        StateHasChanged();
+    }
+
+    // ----- Helpers (copy/clone) -----
+    private static PetDto CreateDeepCopyOfPet(PetDto source) => new PetDto
+    {
+        Id = source.Id,
+        Name = source.Name,
+        Breed = source.Breed,
+        Species = source.Species,
+        Sex = source.Sex,
+        Weight = source.Weight,
+        WeightUnit = source.WeightUnit,
+        DateOfBirth = source.DateOfBirth,
+        // If Family should be editable, consider cloning it as well. For now, keep reference.
+        Family = source.Family
+    };
+
+    private static void CopyPetValuesIntoExistingInstance(PetDto source, PetDto destination)
+    {
+        destination.Name = source.Name;
+        destination.Breed = source.Breed;
+        destination.Species = source.Species;
+        destination.Sex = source.Sex;
+        destination.Weight = source.Weight;
+        destination.WeightUnit = source.WeightUnit;
+        destination.DateOfBirth = source.DateOfBirth;
+        destination.Family = source.Family;
+    }
+}
