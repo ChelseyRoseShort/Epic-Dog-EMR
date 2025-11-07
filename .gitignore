@@ -49,12 +49,6 @@ obj/
 **/node_modules/
 **/out/
 **/coverage/
-**/wwwroot/_framework/
-**/wwwroot/css/
-**/wwwroot/js/
-**/wwwroot/lib/
-**/wwwroot/dist/
-
 # User secrets and local settings
 **/appsettings.Development.json
 **/appsettings.Local.json
@@ -100,9 +94,6 @@ $RECYCLE.BIN/
 ###############################
 # SQLite / Local Databases
 ###############################
-*.db
-*.sqlite
-*.sqlite3
 
 ###############################
 # Certificates & keys
