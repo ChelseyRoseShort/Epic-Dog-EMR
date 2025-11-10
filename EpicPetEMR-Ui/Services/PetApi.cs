@@ -16,4 +16,10 @@ public sealed class PetApi
         var response = await _http.PutAsJsonAsync($"demo/pets/{pet.Id}", pet, ct);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task AddPetAsync(PetDto pet, CancellationToken ct = default)
+    {
+        var response = await _http.PutAsJsonAsync($"demo/addpet/{pet.Id}", pet, ct);
+        response.EnsureSuccessStatusCode();
+    }
 }

@@ -8,10 +8,7 @@
 {
     <p>Loading pets…</p>
 }
-else if (loadErrorMessage is not null)
-{
-    <p class="text-danger">@loadErrorMessage</p>
-}
+
 else
 {
     if (petCurrentlyBeingEdited is not null)
@@ -95,7 +92,64 @@ else
     else
     {
         <!-- Not editing anything: render a simple view-only table -->
-       
+        <td><button class="btn btn-primary btn-sm" @onclick="() => OpenAddPetForm()">Add Pet</button></td>
+        @if (showform)
+        {
+            <EditForm Model="newPet" OnValidSubmit="HandleValidSubmit">
+                <div class="mb-3">
+                    <label>Name:</label>
+                    <InputText class="form-control" @bind-Value="newPet.Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Breed:</label>
+                    <InputText class="form-control" @bind-Value="newPet.Breed" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Species:</label>
+                    <InputSelect class="form-select" @bind-Value="newPet.Species">
+                        <option value="">Select...</option>
+                        <option>Dog</option>
+                        <option>Cat</option>
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label>Sex:</label>
+                    <InputSelect class="form-select" @bind-Value="newPet.Sex">
+                        <option value="">Select...</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label>Weight:</label>
+                    <InputNumber class="form-control" @bind-Value="newPet.Weight" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Weight Unit:</label>
+                    <InputSelect class="form-select" @bind-Value="newPet.WeightUnit">
+                        <option value="">Select...</option>
+                        <option value="lbs">lbs</option>
+                        <option value="kg">kg</option>
+                    </InputSelect>
+                </div>
+
+                <button class="btn btn-primary" type="submit">Save Pet</button>
+            </EditForm>
+
+            @if (submitted)
+            {
+                <div class="alert alert-success mt-3">
+                    Pet submitted successfully!
+                    <h1>@petInfo</h1>
+                </div>
+            }
+        }
+
         <table class="table">
             <thead>
                 <tr>
@@ -143,12 +197,22 @@ else
     // ----- State fields with explicit names -----
     private bool isPageDataLoading = true;
     private string? loadErrorMessage;
-
+    private string? petInfo;
     private string weightUnit = "kg";
 
     private List<PetDto> petsLoadedFromApi = new();
+    private PetDto newPet = new();
+    private bool submitted = false;
 
-    // The pet row currently in "edit mode" (reference to the original item in the list)
+    private void HandleValidSubmit()
+    {
+        // For now, just simulate saving.
+        // Later, we’ll send it to an API or database.
+        Console.WriteLine($"New Pet Added: {newPet.Name}, {newPet.Species}");
+        petInfo = newPet.Name;
+        submitted = true;
+    }
+    // The pet row currentl  in "edit mode" (reference to the original item in the list)
     private PetDto? petCurrentlyBeingEdited;
 
     // A separate, editable draft copy of the pet. We only copy it back on Save.
@@ -202,6 +266,22 @@ else
         StateHasChanged();
     }
 
+    private async Task AddPet()
+    {
+
+        await Api.AddPetAsync(newPet);
+
+        // Exit edit mode
+
+        StateHasChanged();
+
+    }
+    private bool showform = false;
+
+    private void OpenAddPetForm()
+    {
+        showform = !showform;
+    }
     // ----- Helpers (copy/clone) -----
     private static PetDto CreateDeepCopyOfPet(PetDto source) => new PetDto
     {
