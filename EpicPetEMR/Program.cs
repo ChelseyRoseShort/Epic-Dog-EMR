@@ -1,6 +1,9 @@
 using EpicPetEMR.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using EpicPetEMR.Mappers;
+using EpicPetEMR.Shared.Models;
+using EpicPetEMR.Api.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // CORS (dev-wide). Switch to a named, restricted policy later.
@@ -70,6 +73,24 @@ app.MapGet("/demo/pets", async (AppDbContext db) =>
 .WithName("ListPetsDemo")
 .WithOpenApi();
 
+
+app.MapPost("/addpet", async (AppDbContext db, PetDto petDto) =>
+{
+    var pet = petDto.ToEntity();
+    db.Pets.Add(pet);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/addpet/{pet.Id}", pet.ToDto());
+})
+.WithName("AddPetDemo")
+.WithOpenApi();
+
+
+
+
+app.MapGet("/example", () => new { test = "Success" })
+   .WithName("ExampleEndpoint")
+   .WithOpenApi();
 
 app.Run();
 

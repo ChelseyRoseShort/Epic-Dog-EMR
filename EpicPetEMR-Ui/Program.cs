@@ -7,7 +7,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5070/") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:49246/") });
 builder.Services.AddScoped<PetApi>();
 
 await builder.Build().RunAsync();

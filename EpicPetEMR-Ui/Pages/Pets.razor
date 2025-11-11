@@ -95,7 +95,7 @@ else
         <td><button class="btn btn-primary btn-sm" @onclick="() => OpenAddPetForm()">Add Pet</button></td>
         @if (showform)
         {
-            <EditForm Model="newPet" OnValidSubmit="HandleValidSubmit">
+            <EditForm Model="newPet" OnValidSubmit="AddPet">
                 <div class="mb-3">
                     <label>Name:</label>
                     <InputText class="form-control" @bind-Value="newPet.Name" />

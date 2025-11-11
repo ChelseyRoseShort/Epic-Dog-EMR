@@ -22,4 +22,19 @@ public sealed class PetApi
         var response = await _http.PutAsJsonAsync($"demo/addpet/{pet.Id}", pet, ct);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task<PetDto?> AddPetAsync(PetDto newPet)
+    {
+        var response = await _http.PostAsJsonAsync("addpet", newPet);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            // you can throw or handle gracefully
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Error adding pet: {error}");
+            return null;
+        }
+
+        return await response.Content.ReadFromJsonAsync<PetDto>();
+    }
 }

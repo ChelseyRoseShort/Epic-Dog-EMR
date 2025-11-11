@@ -8,10 +8,17 @@ public sealed class PetDto
     public string? Species { get; set; }
     public string? Sex { get; set; }
     public decimal? Weight { get; set; }
-    public string? WeightUnit { get; set; }
+    public string? WeightUnit { get; set; }  // Keep this as string for serialization
 
-    // Use DateOnly, consistent with your entity
     public DateOnly? DateOfBirth { get; set; }
+    public int? FamilyId { get; set; }
 
     public FamilyDto? Family { get; set; }
+}
+
+public enum WeightUnit
+{
+    Unknown = 0,
+    Lbs,
+    Kg
 }
