@@ -28,8 +28,8 @@ else
                         <th>Sex</th>
                         <th>Weight</th>
                          <th></th>
-                        <th>DOB</th>
-                        <th>Family</th>
+                        <th>Birthday</th>
+                        
                         <th style="width:180px;"></th>
                     </tr>
                 </thead>
@@ -62,9 +62,20 @@ else
                                 <InputDate DateFormat="yyyy-MM-dd" class="form-control" @bind-Value="petDraftBeingEdited.DateOfBirth" />
                             </td>
                             <td>@petDraftBeingEdited.Family?.Name</td>
-                            <td>
+                                <td style="height: 55px;
+                    position: relative;
+                    display: flex;
+                    left: -63px;
+                    width: 234px;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 0px;">
                                 <button type="submit" class="btn btn-success btn-sm me-2">Save</button>
                                 <button type="button" class="btn btn-secondary btn-sm" @onclick="CancelEdit">Cancel</button>
+                                    <button style="position: relative;
+                                    right: -9px;" type="button" class="btn btn-outline-danger btn-sm" @onclick="() => DeletePet(currentPet)">
+                                        Delete Pet
+                                    </button>
                             </td>
                         </tr>
                     }
@@ -122,6 +133,11 @@ else
                         <option>Male</option>
                         <option>Female</option>
                     </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label>Birthday</label>
+                    <InputDate DateFormat="yyyy-MM-dd" class="form-control" @bind-Value="newPet.DateOfBirth" />
                 </div>
 
                 <div class="mb-3">
@@ -249,6 +265,16 @@ else
         petDraftBeingEdited = new();
         StateHasChanged();
     }
+
+    private async Task DeletePet(PetDto petToEdit)
+    {
+        petCurrentlyBeingEdited = petToEdit;
+
+       
+        await Api.DeletePet(petCurrentlyBeingEdited);
+        StateHasChanged();
+    }
+    
 
     private async Task SaveChangesAsync()
     {

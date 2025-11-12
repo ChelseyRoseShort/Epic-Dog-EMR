@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using EpicPetEMR.Mappers;
 using EpicPetEMR.Shared.Models;
 using EpicPetEMR.Api.Models;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,6 +85,33 @@ app.MapPost("/addpet", async (AppDbContext db, PetDto petDto) =>
 })
 .WithName("AddPetDemo")
 .WithOpenApi();
+
+// Save an edited pet
+app.MapPut("/updatepet", async (AppDbContext db, PetDto petDto) =>
+{
+    var pet = petDto.ToEntity();
+    db.Pets.Update(pet);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/addpet/{pet.Id}", pet.ToDto());
+})
+.WithName("UpdatePet")
+.WithOpenApi();
+
+app.MapDelete("/deletepet", async (AppDbContext db, [FromBody] PetDto petDto) =>
+{
+    var pet = petDto.ToEntity();
+
+    db.Pets.Attach(pet);
+    db.Pets.Remove(pet);
+
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+})
+.WithName("DeletePet")
+.WithOpenApi();
+
 
 
 

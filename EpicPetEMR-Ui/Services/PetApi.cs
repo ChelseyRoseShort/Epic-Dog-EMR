@@ -13,7 +13,18 @@ public sealed class PetApi
 
     public async Task UpdatePetAsync(PetDto pet,  CancellationToken ct = default)
     {
-        var response = await _http.PutAsJsonAsync($"demo/pets/{pet.Id}", pet, ct);
+        var response = await _http.PutAsJsonAsync($"updatepet", pet, ct);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task DeletePet(PetDto pet, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Delete, "deletepet")
+        {
+            Content = JsonContent.Create(pet)
+        };
+
+        var response = await _http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
     }
 
