@@ -257,7 +257,19 @@ else
         petCurrentlyBeingEdited = petToEdit;
         petDraftBeingEdited = CreateDeepCopyOfPet(petToEdit); // work on a copy so Cancel discards changes
     }
+    private async Task LoadPetsAsync()
+    {
+        isPageDataLoading = true;
 
+        petsLoadedFromApi = await Api.GetPetsAsync();
+
+        isPageDataLoading = false;
+    }
+
+    private async Task ReloadPetsAsync()
+    {
+        await LoadPetsAsync();
+    }
     private void CancelEdit()
     {
         // Throw away the draft and exit edit mode
@@ -270,9 +282,10 @@ else
     {
         petCurrentlyBeingEdited = petToEdit;
 
-       
+
         await Api.DeletePet(petCurrentlyBeingEdited);
         StateHasChanged();
+        await ReloadPetsAsync();
     }
     
 
@@ -290,6 +303,7 @@ else
         petCurrentlyBeingEdited = null;
         petDraftBeingEdited = new();
         StateHasChanged();
+        await ReloadPetsAsync();
     }
 
     private async Task AddPet()
@@ -300,7 +314,7 @@ else
         // Exit edit mode
 
         StateHasChanged();
-
+        await ReloadPetsAsync();
     }
     private bool showform = false;
 
