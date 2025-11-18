@@ -1,3 +1,4 @@
+using EpicPetEMR.Shared.Models;
 namespace EpicPetEMR.Api.Models;
 
 public class Family

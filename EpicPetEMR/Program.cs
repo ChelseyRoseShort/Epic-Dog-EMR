@@ -4,6 +4,8 @@ using EpicPetEMR.Mappers;
 using EpicPetEMR.Shared.Models;
 using EpicPetEMR.Api.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +31,7 @@ var app = builder.Build();
 // Order matters
 app.UseHttpsRedirection();
 app.UseCors(); // CORS before endpoints (and before auth, if you add it later)
-
+app.UseStaticFiles();
 // Auto-migrate on startup
 using (var scope = app.Services.CreateScope())
 {
@@ -75,9 +77,46 @@ app.MapGet("/demo/pets", async (AppDbContext db) =>
 .WithOpenApi();
 
 
+app.MapGet("/getpet/{id}", async (AppDbContext db, int id) =>
+{
+    var pet = await db.Pets.Include(p => p.Family).FirstOrDefaultAsync(p => p.Id == id);
+    return Results.Ok(pet.ToDto());
+})
+.WithName("getpetbyid")
+.WithOpenApi();
+
+// add profile pic 
+app.MapPost("/uploadprofilepic/{id}", async (int id, IFormFile file, AppDbContext db, IWebHostEnvironment env) =>
+{
+    var pet = await db.Pets.FindAsync(id);
+    if (pet == null)
+    {
+        return Results.NotFound("Pet not found");
+    }
+    var uploadsFolder = Path.Combine(env.ContentRootPath, "wwwroot", "petphotos");
+    Directory.CreateDirectory(uploadsFolder);
+    var safefilename = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+    var fullPath = Path.Combine(uploadsFolder, safefilename);
+    using var stream = new FileStream(fullPath, FileMode.Create);
+    await file.CopyToAsync(stream);
+    pet.ProfilePic = $"/petphotos/{safefilename}";
+    await db.SaveChangesAsync();
+    return Results.Ok(pet.ToDto());
+}).Accepts<IFormFile>("multipart/form-data")
+.Produces<PetDto>().DisableAntiforgery();
+
 app.MapPost("/addpet", async (AppDbContext db, PetDto petDto) =>
 {
     var pet = petDto.ToEntity();
+     if (string.IsNullOrWhiteSpace(pet.ProfilePic))
+    {
+        pet.ProfilePic = pet.Species switch
+        {
+            Species.Cat => "/a-sleek-aesthetic-line-art-of-a-cat-in-a-side-profile-the-cat-has-sharp-geometric-angles-for-the-ears-and-soft-curves-for-the-body-vector.jpg",
+            Species.Dog => "/360_F_1381163227_EfXTrDaEGIrk4izbfwh5zvP2yO8ABMyP.jpg",
+            _ => ""
+        };
+    }
     db.Pets.Add(pet);
     await db.SaveChangesAsync();
 

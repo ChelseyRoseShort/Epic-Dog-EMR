@@ -3,6 +3,8 @@ namespace EpicPetEMR.Shared.Models;
 public sealed class PetDto
 {
     public int Id { get; set; }
+
+    public string? ProfilePic { get; set; }
     public string? Name { get; set; }
     public string? Breed { get; set; }
     public string? Species { get; set; }
@@ -19,6 +21,6 @@ public sealed class PetDto
 public enum WeightUnit
 {
     Unknown = 0,
-    Lbs,
-    Kg
+    lbs,
+    kg
 }

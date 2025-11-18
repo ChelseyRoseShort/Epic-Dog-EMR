@@ -4,25 +4,21 @@
 
 namespace EpicPetEMR.Migrations
 {
-    /// <inheritdoc />
-    public partial class AddProfilePic : Migration
+    public partial class AddPetImageUrl : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "ProfilePic",
+                name: "ImageUrl",
                 table: "Pets",
                 type: "TEXT",
-                nullable: false,
-                defaultValue: "");
+                nullable: true);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ProfilePic",
+                name: "ImageUrl",
                 table: "Pets");
         }
     }

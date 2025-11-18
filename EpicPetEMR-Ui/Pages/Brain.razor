@@ -20,10 +20,11 @@
         @for (int idx = 0; idx < _pets.Count; idx++)
         {
             var p = _pets[idx];
+          
             var rowClass = (idx % 2 == 0) ? "row-even" : "row-odd";
 
             <!-- left sticky name cell -->
-            <div class="cell sticky-left @rowClass">@p.Name</div>
+            <div class="cell sticky-left @rowClass">  <a href="petprofile/@p.Id">@p.Name</a></div>
 
             <!-- hour cells -->
             @for (var h = StartHour; h <= EndHour; h++)

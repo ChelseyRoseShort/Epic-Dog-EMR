@@ -13,6 +13,7 @@ public static class PetMapper
         Species = p.Species.ToString(),
         Sex = p.Sex.ToString(),
         Weight = p.Weight,
+        ProfilePic = p.ProfilePic,
         WeightUnit = p.WeightUnit?.ToString(),
         DateOfBirth = p.DateOfBirth,
         Family = p.Family is null ? null : new FamilyDto
@@ -38,7 +39,10 @@ public static class PetMapper
             Weight = dto.Weight,
             WeightUnit = weightUnit,
             DateOfBirth = dto.DateOfBirth,
-            FamilyId = dto.Family?.Id
+            FamilyId = dto.Family?.Id,
+
+            
+            ProfilePic = dto.ProfilePic ?? ""
         };
     }
 }

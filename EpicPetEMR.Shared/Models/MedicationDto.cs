@@ -8,7 +8,7 @@ public sealed class MedicationDto
     public string Name { get; set; } = default!;
 
     public decimal? DoseValue { get; set; }
-    public string DoseType { get; set; } = "Unknown";      // serialized enum name
+    public Dosages DoseType { get; set; }      
 
     public string Route { get; set; } = "Unknown";
     public string Frequency { get; set; } = "Unknown";

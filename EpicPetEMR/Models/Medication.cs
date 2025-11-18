@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+using EpicPetEMR.Shared.Models;
 namespace EpicPetEMR.Api.Models;
 
 public class Medication
