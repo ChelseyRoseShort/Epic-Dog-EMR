@@ -24,92 +24,83 @@ else
     OnClose="() => AddMed = false"
     OnConfirm="SaveMedication">
 
-    @for (int i = 0; i < Medications.Count; i++)
-    {
-        var med = Medications[i];
+            <div class="med-row">
 
-        <div class="med-row">
+                <h4>Medication</h4>
 
-            <h4>Medication @(i + 1)</h4>
+                <div class="form-row">
+                    <label>Name</label>
+                    <input class="form-control" @bind="newMedication.Name" />
+                </div>
 
-            <div class="form-row">
-                <label>Name</label>
-                <input class="form-control" @bind="med.Name" />
+                <div class="form-row">
+                    <label>Dose Value</label>
+                    <input type="number" class="form-control" @bind="newMedication.DoseValue" />
+                </div>
+
+                <div class="form-row">
+                    <label>Dose Type</label>
+                    <InputSelect TValue="Dosages" class="form-control" @bind-Value="newMedication.DoseType">
+                        @foreach (var value in Enum.GetValues<Dosages>())
+                        {
+                            <option value="@value">@value</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="form-row">
+                    <label>Route</label>
+                    <select class="form-control" @bind="newMedication.Route">
+                        <option value="PO">PO</option>
+                        <option value="SQ">SQ</option>
+                        <option value="IM">IM</option>
+                        <option value="IV">IV</option>
+                        <option value="Transdermal">Transdermal</option>
+                        <option value="Unknown">Unknown</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label>Frequency</label>
+                    <select class="form-control" @bind="newMedication.Frequency">
+                        <option value="BID">BID</option>
+                        <option value="SID">SID</option>
+                        <option value="TID">TID</option>
+                        <option value="QID">QID</option>
+                        <option value="PRN">PRN</option>
+                        <option value="Once">Once</option>
+                        <option value="Unknown">Unknown</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label>Instructions</label>
+                    <textarea class="form-control" @bind="newMedication.Instructions"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <label>Start Date</label>
+                    <input type="date"
+                           class="form-control"
+                           @bind="newMedication.StartDate"
+                           @bind:format="yyyy-MM-dd" />
+                </div>
+
+                <div class="form-row">
+                    <label>End Date</label>
+                    <input type="date"
+                           class="form-control"
+                           @bind="newMedication.EndDate"
+                           @bind:format="yyyy-MM-dd" />
+                </div>
+
+                <div class="form-row checkbox-row">
+                    <label>Active?</label>
+                    <input type="checkbox" class="form-check-input" @bind="newMedication.IsActive" />
+                </div>
+
             </div>
 
-            <div class="form-row">
-                <label>Dose Value</label>
-                <input type="number" class="form-control" @bind="med.DoseValue" />
-            </div>
-
-            <div class="form-row">
-                <label>Dose Type</label>
-                <InputSelect TValue="Dosages" class="form-control" @bind-Value="med.DoseType">
-                    @foreach (var value in Enum.GetValues<Dosages>())
-                    {
-                        <option value="@value">@value</option>
-                    }
-                </InputSelect>
-            </div>
-
-            <div class="form-row">
-                <label>Route</label>
-                <select class="form-control" @bind="med.Route">
-                    <option value="PO">PO</option>
-                    <option value="SQ">SQ</option>
-                    <option value="IM">IM</option>
-                    <option value="IV">IV</option>
-                    <option value="Transdermal">Transdermal</option>
-                    <option value="Unknown">Unknown</option>
-                </select>
-            </div>
-
-            <div class="form-row">
-                <label>Frequency</label>
-                <select class="form-control" @bind="med.Frequency">
-                    <option value="BID">BID</option>
-                    <option value="SID">SID</option>
-                    <option value="TID">TID</option>
-                    <option value="QID">QID</option>
-                    <option value="PRN">PRN</option>
-                    <option value="Once">Once</option>
-                    <option value="Unknown">Unknown</option>
-                </select>
-            </div>
-
-            <div class="form-row">
-                <label>Instructions</label>
-                <textarea class="form-control" @bind="med.Instructions"></textarea>
-            </div>
-
-            <div class="form-row">
-                <label>Start Date</label>
-                <input type="date"
-                       class="form-control"
-                       @bind="med.StartDate"
-                       @bind:format="yyyy-MM-dd" />
-            </div>
-
-            <div class="form-row">
-                <label>End Date</label>
-                <input type="date"
-                       class="form-control"
-                       @bind="med.EndDate"
-                       @bind:format="yyyy-MM-dd" />
-            </div>
-
-            <div class="form-row checkbox-row">
-                <label>Active?</label>
-                <input type="checkbox" class="form-check-input" @bind="med.IsActive" />
-            </div>
-
-            <button class="btn-cancel" @onclick="() => RemoveRow(i)">
-                Remove
-            </button>
-
-            <hr />
-        </div>
-    }
 
     <button class="btn-confirm" @onclick="AddRow">
         Add another
@@ -124,6 +115,7 @@ else
         <p><strong>Breed:</strong> @pet.Breed</p>
         <p><strong>Age:</strong> @CalculatePetAge(pet.DateOfBirth)</p>
         <button @onclick="AddMedication" style="lighting-color">Add Medication</button>
+
 
         <InputFile OnChange="UploadPhoto" accept="image/*"  />  
         @if (!string.IsNullOrEmpty(pet.ProfilePic))
@@ -148,26 +140,28 @@ else
     private PetDto? pet;
     private bool AddMed = false;
     private bool isLoading = true;
-   private List<MedicationDto> Medications = new()
+    private MedicationDto newMedication = new();
+    private List<MedicationDto> Medications = new()
 {
     new MedicationDto()
 };
 
-private void AddRow()
-{
-    Medications.Add(new MedicationDto());
-}
+    private void AddRow()
+    {
+        Medications.Add(new MedicationDto());
+    }
 
-private void RemoveRow(int index)
-{
-    Medications.RemoveAt(index);
-}
+    private void RemoveRow(int index)
+    {
+        Medications.RemoveAt(index);
+    }
 
-private async Task SaveMedication()
-{
-    // you will write saving logic later
-    AddMed = false;
-}
+    private async Task SaveMedication()
+    {
+        newMedication.PetId = pet.Id;
+        // you will write saving logic later
+        await Api.AddMedAsync(newMedication);
+    }
 
     protected override async Task OnInitializedAsync()
     {

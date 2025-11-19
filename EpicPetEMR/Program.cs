@@ -6,6 +6,7 @@ using EpicPetEMR.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
+using EpicPetEMR.Api.Mappers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -124,6 +125,17 @@ app.MapPost("/addpet", async (AppDbContext db, PetDto petDto) =>
 })
 .WithName("AddPetDemo")
 .WithOpenApi();
+
+app.MapPost("/addmedication", async (AppDbContext db, MedicationDto medicationDto) =>
+{
+    var medication = medicationDto.ToEntity();
+    db.Medications.Add(medication);
+    await db.SaveChangesAsync();
+
+    return Results.Created($"/addmedication/{medication.Id}", medication);
+})
+.WithName("AddMedication");
+
 
 // Save an edited pet
 app.MapPut("/updatepet", async (AppDbContext db, PetDto petDto) =>

@@ -12,7 +12,7 @@ public sealed class PetApi
     public async Task<List<PetDto>> GetPetsAsync(CancellationToken ct = default)
         => await _http.GetFromJsonAsync<List<PetDto>>("demo/pets", ct) ?? new();
 
-    public async Task UpdatePetAsync(PetDto pet,  CancellationToken ct = default)
+    public async Task UpdatePetAsync(PetDto pet, CancellationToken ct = default)
     {
         var response = await _http.PutAsJsonAsync($"updatepet", pet, ct);
         response.EnsureSuccessStatusCode();
@@ -28,6 +28,7 @@ public sealed class PetApi
         var response = await _http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
     }
+
     // add photo function here
     public async Task<PetDto?> UploadPetPhoto(int Id, IBrowserFile file)
     {
@@ -35,20 +36,17 @@ public sealed class PetApi
         var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB limit
         var fileContent = new StreamContent(stream);
         content.Add(fileContent, "file", file.Name);
-        var response = await _http.PostAsync($"/uploadprofilepic/{Id}", content); 
+
+        var response = await _http.PostAsync($"/uploadprofilepic/{Id}", content);
+
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"Error uploading photo: {error}");
             return null;
         }
+
         return await response.Content.ReadFromJsonAsync<PetDto>();
-    }
-    
-    public async Task AddPetAsync(PetDto pet, CancellationToken ct = default)
-    {
-        var response = await _http.PutAsJsonAsync($"demo/addpet/{pet.Id}", pet, ct);
-        response.EnsureSuccessStatusCode();
     }
 
     public async Task<PetDto?> AddPetAsync(PetDto newPet)
@@ -57,7 +55,6 @@ public sealed class PetApi
 
         if (!response.IsSuccessStatusCode)
         {
-            // you can throw or handle gracefully
             var error = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"Error adding pet: {error}");
             return null;
@@ -66,10 +63,27 @@ public sealed class PetApi
         return await response.Content.ReadFromJsonAsync<PetDto>();
     }
 
-
     // make single pet api call
-
     public async Task<PetDto> GetPetById(int id, CancellationToken ct = default)
         => await _http.GetFromJsonAsync<PetDto>($"getpet/{id}", ct);
 
+    // *** THIS BRACE WAS MISSING ***
+    // Closing off the class scope before AddMedAsync
+    // ----------------------------------------------
+    // Without it, AddMedAsync was being parsed INSIDE GetPetById.
+    // ----------------------------------------------
+
+    public async Task<MedicationDto> AddMedAsync(MedicationDto newMedication)
+    {
+        var response = await _http.PostAsJsonAsync("addmedication", newMedication);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Error adding medication: {error}");
+            return null;
+        }
+
+        return await response.Content.ReadFromJsonAsync<MedicationDto>();
+    }
 }

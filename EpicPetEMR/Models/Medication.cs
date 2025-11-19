@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using EpicPetEMR.Shared.Models;
+
 namespace EpicPetEMR.Api.Models;
 
 public class Medication
@@ -10,13 +11,21 @@ public class Medication
     public Pet Pet { get; set; } = default!;
 
     [Required, MaxLength(160)]
-    public string Name { get; set; } = default!;     // e.g., Vetmedin
+    public string Name { get; set; } = default!;
+
+    public decimal? DoseValue { get; set; }
 
     [MaxLength(160)]
-    public string? Dosage { get; set; }              // e.g., "5 mg PO BID"
+    public Dosages DoseType { get; set; }
+
+    public string Route { get; set; } = "Unknown";
+    public string Frequency { get; set; } = "Unknown";
+
+    public string? Instructions { get; set; }
 
     public DateOnly? StartDate { get; set; }
-    public DateOnly? EndDate { get; set; }           // null if ongoing
+    public DateOnly? EndDate { get; set; }
 
-    public bool IsActive => !EndDate.HasValue || EndDate >= DateOnly.FromDateTime(DateTime.UtcNow);
+    // UI IsActive can be overridden or you can compute it here
+    public bool IsActive { get; set; }
 }
