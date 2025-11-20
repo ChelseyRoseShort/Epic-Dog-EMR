@@ -276,6 +276,57 @@ code {
     justify-content: flex-end;
     gap: 10px;
 }
+.modal-backdrop {
+    background: unset !important;
+    left: 28%;
+    color: white;
+    top:40px;
+}
+
+.modal-box {
+    background-color: #1e1858 !important;
+    color: white !important;
+    width: 392px;
+}
+
+.close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s ease, transform 0.1s ease;
+    text-decoration: none;
+    user-select: none;
+}
+
+.btn-confirm, .btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s ease, transform 0.1s ease;
+    text-decoration: none;
+    user-select: none;
+}
+
+.med-row {
+    gap: 9px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+
 
 /* nice fade-in animation */
 @keyframes fadeIn {
