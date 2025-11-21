@@ -18,8 +18,8 @@ public class Medication
     [MaxLength(160)]
     public Dosages DoseType { get; set; }
 
-    public string Route { get; set; } = "Unknown";
-    public string Frequency { get; set; } = "Unknown";
+    public Routes Route { get; set; } 
+    public Frequency Frequency{ get; set; } 
 
     public string? Instructions { get; set; }
 

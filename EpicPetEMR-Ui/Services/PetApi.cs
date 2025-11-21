@@ -29,6 +29,17 @@ public sealed class PetApi
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task DeleteMed(MedicationDto med, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Delete, "deletemed")
+        {
+            Content = JsonContent.Create(med)
+        };
+
+        var response = await _http.SendAsync(request, ct);
+        response.EnsureSuccessStatusCode();
+    }
+
     // add photo function here
     public async Task<PetDto?> UploadPetPhoto(int Id, IBrowserFile file)
     {
@@ -67,11 +78,10 @@ public sealed class PetApi
     public async Task<PetDto> GetPetById(int id, CancellationToken ct = default)
         => await _http.GetFromJsonAsync<PetDto>($"getpet/{id}", ct);
 
-    // *** THIS BRACE WAS MISSING ***
-    // Closing off the class scope before AddMedAsync
-    // ----------------------------------------------
-    // Without it, AddMedAsync was being parsed INSIDE GetPetById.
-    // ----------------------------------------------
+    public async Task<List<MedicationDto>> GetMedsById(int id, CancellationToken ct = default)
+       => await _http.GetFromJsonAsync<List<MedicationDto>>($"pets/{id}/medications", ct);
+
+   
 
     public async Task<MedicationDto> AddMedAsync(MedicationDto newMedication)
     {

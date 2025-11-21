@@ -77,6 +77,17 @@ app.MapGet("/demo/pets", async (AppDbContext db) =>
 .WithName("ListPetsDemo")
 .WithOpenApi();
 
+app.MapGet("/pets/{petId:int}/medications", async (int petId, AppDbContext db) =>
+    {
+        var meds = await db.Medications.Where(m => m.PetId == petId).Select(m => m.ToDto()).ToListAsync();
+        if (meds == null)
+        {
+            return Results.NotFound("Medications not found");
+        }
+        return Results.Ok(meds);
+
+    }).WithName("GetMedicationsByPetId").WithOpenApi();
+
 
 app.MapGet("/getpet/{id}", async (AppDbContext db, int id) =>
 {
@@ -161,6 +172,20 @@ app.MapDelete("/deletepet", async (AppDbContext db, [FromBody] PetDto petDto) =>
     return Results.NoContent();
 })
 .WithName("DeletePet")
+.WithOpenApi();
+
+app.MapDelete("/deletemed", async (AppDbContext db, [FromBody] MedicationDto medicationDto) =>
+{
+    var med = medicationDto.ToEntity();
+
+    db.Medications.Attach(med);
+    db.Medications.Remove(med);
+
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+})
+.WithName("Deletemed")
 .WithOpenApi();
 
 

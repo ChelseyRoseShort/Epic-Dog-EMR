@@ -50,27 +50,25 @@ else
 
                 <div class="form-row">
                     <label>Route</label>
-                    <select class="form-control" @bind="newMedication.Route">
-                        <option value="PO">PO</option>
-                        <option value="SQ">SQ</option>
-                        <option value="IM">IM</option>
-                        <option value="IV">IV</option>
-                        <option value="Transdermal">Transdermal</option>
-                        <option value="Unknown">Unknown</option>
-                    </select>
+                    <InputSelect TValue="Routes" class="form-control" @bind-Value="newMedication.Route">
+                        @foreach (var value in Enum.GetValues<Routes>())
+                        {
+                            <option value="@value">@value</option>
+                        }
+    )
+                    </InputSelect>
                 </div>
 
                 <div class="form-row">
                     <label>Frequency</label>
-                    <select class="form-control" @bind="newMedication.Frequency">
-                        <option value="BID">BID</option>
-                        <option value="SID">SID</option>
-                        <option value="TID">TID</option>
-                        <option value="QID">QID</option>
-                        <option value="PRN">PRN</option>
-                        <option value="Once">Once</option>
-                        <option value="Unknown">Unknown</option>
-                    </select>
+                    <InputSelect TValue="Frequency" class="form-control" @bind-Value="newMedication.Frequency">
+                        
+                    @foreach (var value in Enum.GetValues<Frequency>())
+                        {
+                            <option value="@value">@value</option>
+                        }
+                        
+                    </InputSelect>
                 </div>
 
                 <div class="form-row">
@@ -130,7 +128,31 @@ else
 @*  <InputFile OnChange="UploadPhoto" accept="image/*"  />  *@
     </div>
 }
+    <div class="current-medication-container">
+    <h2>Current Medications</h2>
+    @foreach (var med in meds)
+    {
+        <h3>@med.Name</h3>
+        <div>@med.DoseValue @med.DoseType</div>
+        <div> <strong>Route</strong> @med.Route</div>
+        <div> <strong>Frequency</strong> @med.Frequency</div>
+        <div>@med.Instructions</div> <button @onclick="()=>MedConfirmDelete(med)" class="alert-danger">Delete Medication</button>
+    }
+    @if (deleteconfirm)
+    {
+        <div class="modal-overlay">
+            <div class="modal-box">
+                <h4>Delete @MedToDelete.Name?</h4>
+                <p>Are you sure you want to delete this medication?</p>
 
+                <div class="modal-buttons">
+                    <button class="btn btn-danger" @onclick="async () => await DeleteMed(MedToDelete!)">Delete</button>
+                    <button class="btn btn-secondary" @onclick="() => deleteconfirm = false">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+</div >
 @code {
     [Parameter]
     public int id { get; set; }
@@ -138,26 +160,20 @@ else
     private bool AddMed = false;
     private bool isLoading = true;
     private MedicationDto newMedication = new();
-    private List<MedicationDto> Medications = new()
-{
-    new MedicationDto()
-};
+    private List<MedicationDto> meds = new();
+    private bool deleteconfirm = false;
+    private MedicationDto MedToDelete = new();
 
-    private void AddRow()
-    {
-        Medications.Add(new MedicationDto());
-    }
 
-    private void RemoveRow(int index)
-    {
-        Medications.RemoveAt(index);
-    }
+
 
     private async Task SaveMedication()
     {
         newMedication.PetId = pet.Id;
         // you will write saving logic later
         await Api.AddMedAsync(newMedication);
+        await ReloadMedsAsync();
+        AddMed = false;
     }
 
     protected override async Task OnInitializedAsync()
@@ -165,6 +181,7 @@ else
         try
         {
             pet = await Api.GetPetById(id);
+            meds = await Api.GetMedsById(id);
         }
         catch (Exception ex)
         {
@@ -231,6 +248,48 @@ else
         return $"{years} years {months} months";
     }
 
+    private void MedConfirmDelete(MedicationDto Medication)
+    {
+
+         MedToDelete = Medication;
+         deleteconfirm = true;
+    }
+
+    private async Task DeleteMed(MedicationDto Medication)
+    {
+
+        deleteconfirm = false;
+
+        await Api.DeleteMed(Medication);
+
+        StateHasChanged();
+        
+
+        await ReloadMedsAsync();
+    }
+
+    private async Task LoadMedsAsync()
+    {
+        try
+        {
+            
+            meds = await Api.GetMedsById(id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching pet data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ReloadMedsAsync()
+    {
+        await LoadMedsAsync();
+    }
 
     private async Task ReloadPet()
     {
