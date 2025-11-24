@@ -1,7 +1,8 @@
-using System.Net.Http.Json;
 using EpicPetEMR.Shared.Models;
+using EpicPetEMR_Ui.ViewModels;
 using Microsoft.AspNetCore.Components.Forms;   // <- from Shared
-
+using System.Net.Http.Json;
+using EpicPetEMR_Ui.ViewModels;
 namespace EpicPetEMR_Ui.Services;
 
 public sealed class PetApi
@@ -9,9 +10,24 @@ public sealed class PetApi
     private readonly HttpClient _http;
     public PetApi(HttpClient http) => _http = http;
 
-    public async Task<List<PetDto>> GetPetsAsync(CancellationToken ct = default)
-        => await _http.GetFromJsonAsync<List<PetDto>>("demo/pets", ct) ?? new();
+    public async Task<List<PetDto>> GetAllPetsAsync(
+     CancellationToken ct = default,
+     bool includeMeds = false)
+    {
+        var url = $"demo/pets?includeMeds={includeMeds.ToString().ToLower()}";
 
+        return await _http.GetFromJsonAsync<List<PetDto>>(url, ct) ?? new();
+    }
+
+    public async Task<List<PetWithMedsVm>> GetPetsAsync(
+     bool includeMeds = false,
+     CancellationToken ct = default)
+    {
+        var url = $"demo/pets?includeMeds={includeMeds.ToString().ToLower()}";
+
+        return await _http.GetFromJsonAsync<List<PetWithMedsVm>>(url, ct)
+               ?? new();
+    }
     public async Task UpdatePetAsync(PetDto pet, CancellationToken ct = default)
     {
         var response = await _http.PutAsJsonAsync($"updatepet", pet, ct);

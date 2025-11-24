@@ -69,10 +69,21 @@ app.MapGet("/weatherforecast", () =>
 
 
 
-app.MapGet("/demo/pets", async (AppDbContext db) =>
+app.MapGet("/demo/pets", async (AppDbContext db, bool includeMeds = false) =>
 {
     var pets = await db.Pets.Include(p => p.Family).ToListAsync();
-    return Results.Ok(pets.Select(p => p.ToDto()));
+    if (!includeMeds)
+    {
+        return Results.Ok(pets.Select(p => p.ToDto()));
+    }
+   var meds = await db.Medications.ToListAsync();
+    var result = pets.Select(p => new
+    {
+        Pet = p.ToDto(),
+        Medications = meds.Where(m => m.PetId == p.Id).Select(m => m.ToDto()).ToList()
+        
+    });
+    return Results.Ok(result);
 })
 .WithName("ListPetsDemo")
 .WithOpenApi();

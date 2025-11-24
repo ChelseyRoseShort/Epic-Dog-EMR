@@ -405,7 +405,7 @@ else
     {
         try
         {
-            petsLoadedFromApi = await Api.GetPetsAsync();
+            petsLoadedFromApi = await Api.GetAllPetsAsync();
         }
         catch (Exception ex)
         {
@@ -429,7 +429,7 @@ else
     {
         isPageDataLoading = true;
 
-        petsLoadedFromApi = await Api.GetPetsAsync();
+        petsLoadedFromApi = await Api.GetAllPetsAsync();
 
         isPageDataLoading = false;
     }

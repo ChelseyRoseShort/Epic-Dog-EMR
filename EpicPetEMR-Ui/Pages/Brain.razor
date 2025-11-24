@@ -1,6 +1,7 @@
 @page "/"
 @using EpicPetEMR_Ui.Services
 @using EpicPetEMR.Shared.Models 
+@using EpicPetEMR_Ui.ViewModels;
 @inject PetApi Api
 
 
@@ -24,23 +25,27 @@
             var rowClass = (idx % 2 == 0) ? "row-even" : "row-odd";
 
             <!-- left sticky name cell -->
-            <div class="cell sticky-left @rowClass">  <a href="petprofile/@p.Id">@p.Name</a></div>
+            <div class="cell sticky-left @rowClass">  <a href="petprofile/@p.Pet.Id">@p.Pet.Name</a></div>
 
             <!-- hour cells -->
             @for (var h = StartHour; h <= EndHour; h++)
             {
                 string? text = null;
-                var hasText = Tasks.TryGetValue(p.Id, out var perHour) && perHour.TryGetValue(h, out text);
-                var done = Completed.Contains((p.Id, h));
+                var hasText = Tasks.TryGetValue(p.Pet.Id, out var perHour) && perHour.TryGetValue(h, out text);
+                var done = Completed.Contains((p.Pet.Id, h));
 
                 <div class="cell @rowClass @(done ? "done" : null)"
-                     data-patient-id="@p.Id"
+                     data-patient-id="@p.Pet.Id"
                      data-hour="@h"
-                     @onclick="@(() => Toggle(p.Id, h))">
-                    @if (hasText && text is not null)
+                     @onclick="@(() => Toggle(p.Pet.Id, h))">
+                   @foreach (var med in @p.Medications)
                     {
-                        <span class="task-dot"></span>
-                        <span class="task">@text</span>
+                        if (h == 7 && med.Frequency != 0)
+                        {
+                            <span class="task-dot"></span>
+                            <span class="task">@med.Name</span>
+                        }
+                      
                     }
                 </div>
             }
@@ -51,15 +56,16 @@
 @code {
     [Parameter] public int StartHour { get; set; } = 7;   // 07:00
     [Parameter] public int EndHour { get; set; } = 19;    // 19:00 (7 PM)
-      private bool _loading = true;
+    private bool _loading = true;
     private string? _error;
-    private List<PetDto> _pets = new();
+    private List<PetWithMedsVm> _pets = new();
+
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            _pets = await Api.GetPetsAsync();
+            _pets = await Api.GetPetsAsync(includeMeds: true);
         }
         catch (Exception ex)
         {
@@ -70,6 +76,7 @@
             _loading = false;
         }
     }
+
     private int HourCount => EndHour - StartHour + 1;
     private string GridTemplateColumns => $"var(--left-col) repeat({HourCount}, var(--cell))";
 
