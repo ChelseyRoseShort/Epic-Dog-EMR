@@ -24,6 +24,9 @@ public class Medication
     public string? Instructions { get; set; }
 
     public DateOnly? StartDate { get; set; }
+
+    public TimeOnly? StartTime { get; set; }
+
     public DateOnly? EndDate { get; set; }
 
     // UI IsActive can be overridden or you can compute it here

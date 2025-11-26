@@ -106,20 +106,22 @@ code {
 
 /* Put the CSS variables on .board so they work with scoped CSS */
 .board {
-    --cell: 160px;      /* width of each hour column */
-    --row-h: 160px;     /* height of each row */
+    --cell: 160px; /* width of each hour column */
+    --row-h: 160px; /* height of each row */
     --left-col: 220px; /* width of patient name column */
-    --gap: 0px;        /* gap between cells (keep 0 for table feel) */
+    --gap: 0px; /* gap between cells (keep 0 for table feel) */
     --border: 1px solid #e3e3e3;
     --bg-header: #fafafa;
     --bg-sticky: #fff;
     --bg-alt: #fcfcff;
-
     width: 100%;
-    overflow: auto;           /* scroll both ways when needed */
+   
     border-top: var(--border);
     border-left: var(--border);
     background: white;
+    position: relative;
+    overflow-y: auto;
+    transform: rotateX(180deg);
 }
 
 /* Grid: 1 sticky left column + N hour columns (N set inline from Razor) */
@@ -129,6 +131,8 @@ code {
     /* DO NOT set grid-template-columns here; it's set inline via @GridTemplateColumns */
     gap: var(--gap);
     position: relative;
+       transform: rotateX(180deg);
+
 }
 
 /* Cells */

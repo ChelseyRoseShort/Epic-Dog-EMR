@@ -4,7 +4,9 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using EpicPetEMR_Ui.Modals
 @inject PetApi Api
+
 <h3>Pet Profile</h3>
+
 @if (isLoading)
 {
     <p>Loading pet data...</p>
@@ -14,15 +16,14 @@ else if (pet == null)
     <p>Pet not found.</p>
     <button @onclick="ReloadPet" class="btn btn-success">Reload1Pet</button>
 }
-else 
+else
 {
-     @* Viewable html goes here when pet is not null *@
     <div class="pet-profile">
-<AddMedication 
-    IsOpen="AddMed"
-    Title="Add Medication"
-    OnClose="() => AddMed = false"
-    OnConfirm="SaveMedication">
+
+        <AddMedication IsOpen="AddMed"
+                       Title="Add Medication"
+                       OnClose="() => AddMed = false"
+                       OnConfirm="SaveMedication">
 
             <div class="med-row">
 
@@ -55,19 +56,16 @@ else
                         {
                             <option value="@value">@value</option>
                         }
-    )
                     </InputSelect>
                 </div>
 
                 <div class="form-row">
                     <label>Frequency</label>
                     <InputSelect TValue="Frequency" class="form-control" @bind-Value="newMedication.Frequency">
-                        
-                    @foreach (var value in Enum.GetValues<Frequency>())
+                        @foreach (var value in Enum.GetValues<Frequency>())
                         {
                             <option value="@value">@value</option>
                         }
-                        
                     </InputSelect>
                 </div>
 
@@ -85,6 +83,15 @@ else
                 </div>
 
                 <div class="form-row">
+                    <label>Start Time</label>
+
+                    <input type="time"
+                           class="form-control"
+                           step="60"
+                           @bind="newMedication.StartTime" />
+                </div>
+
+                <div class="form-row">
                     <label>End Date</label>
                     <input type="date"
                            class="form-control"
@@ -98,26 +105,19 @@ else
                 </div>
 
             </div>
-
-
-
-</AddMedication>
-
-
-
+        </AddMedication>
 
         <h4>@pet.Name (@pet.Species)</h4>
         <p><strong>Breed:</strong> @pet.Breed</p>
         <p><strong>Age:</strong> @CalculatePetAge(pet.DateOfBirth)</p>
+
         <button @onclick="AddMedication" style="lighting-color">Add Medication</button>
 
+        <InputFile OnChange="UploadPhoto" accept="image/*" />
 
-        <InputFile OnChange="UploadPhoto" accept="image/*"  />  
         @if (!string.IsNullOrEmpty(pet.ProfilePic))
         {
-            <img src="@($"https://localhost:60174{pet.ProfilePic}")"
-                 style="max-width:300px;" />
-
+            <img src="@($"https://localhost:60174{pet.ProfilePic}")" style="max-width:300px;" />
         }
         else
         {
@@ -125,19 +125,22 @@ else
                  alt="Sample Dalmatian with heterochromia"
                  style="max-width:300px; border-radius:10px;" />
         }
-@*  <InputFile OnChange="UploadPhoto" accept="image/*"  />  *@
     </div>
 }
-    <div class="current-medication-container">
+
+<div class="current-medication-container">
     <h2>Current Medications</h2>
+
     @foreach (var med in meds)
     {
         <h3>@med.Name</h3>
         <div>@med.DoseValue @med.DoseType</div>
-        <div> <strong>Route</strong> @med.Route</div>
-        <div> <strong>Frequency</strong> @med.Frequency</div>
-        <div>@med.Instructions</div> <button @onclick="()=>MedConfirmDelete(med)" class="alert-danger">Delete Medication</button>
+        <div><strong>Route</strong> @med.Route</div>
+        <div><strong>Frequency</strong> @med.Frequency</div>
+        <div>@med.Instructions</div>
+        <button @onclick="() => MedConfirmDelete(med)" class="alert-danger">Delete Medication</button>
     }
+
     @if (deleteconfirm)
     {
         <div class="modal-overlay">
@@ -152,10 +155,11 @@ else
             </div>
         </div>
     }
-</div >
+</div>
+
 @code {
-    [Parameter]
-    public int id { get; set; }
+    [Parameter] public int id { get; set; }
+
     private PetDto? pet;
     private bool AddMed = false;
     private bool isLoading = true;
@@ -164,15 +168,13 @@ else
     private bool deleteconfirm = false;
     private MedicationDto MedToDelete = new();
 
-
-
-
     private async Task SaveMedication()
     {
         newMedication.PetId = pet.Id;
-        // you will write saving logic later
+
         await Api.AddMedAsync(newMedication);
         await ReloadMedsAsync();
+
         AddMed = false;
     }
 
@@ -192,10 +194,8 @@ else
             isLoading = false;
             StateHasChanged();
         }
-
     }
 
-    // add UploadPhoto method here 
     private async Task UploadPhoto(InputFileChangeEventArgs e)
     {
         var file = e.File;
@@ -207,16 +207,12 @@ else
             StateHasChanged();
             ReloadPet();
         }
-
-    
-
     }
+
     private void AddMedication()
     {
         AddMed = true;
-
     }
-
 
     private string CalculatePetAge(DateOnly? dob)
     {
@@ -227,8 +223,7 @@ else
         int years = today.Year - dob.Value.Year;
         int months = today.Month - dob.Value.Month;
 
-        if (today.Day < dob.Value.Day)
-            months--;
+        if (today.Day < dob.Value.Day) months--;
 
         if (months < 0)
         {
@@ -236,35 +231,24 @@ else
             months += 12;
         }
 
-        if (years <= 0 && months <= 0)
-            return "Less than a month";
-
-        if (years <= 0)
-            return $"{months} months";
-
-        if (months == 0)
-            return $"{years} years";
+        if (years <= 0 && months <= 0) return "Less than a month";
+        if (years <= 0) return $"{months} months";
+        if (months == 0) return $"{years} years";
 
         return $"{years} years {months} months";
     }
 
     private void MedConfirmDelete(MedicationDto Medication)
     {
-
-         MedToDelete = Medication;
-         deleteconfirm = true;
+        MedToDelete = Medication;
+        deleteconfirm = true;
     }
 
     private async Task DeleteMed(MedicationDto Medication)
     {
-
         deleteconfirm = false;
-
         await Api.DeleteMed(Medication);
-
         StateHasChanged();
-        
-
         await ReloadMedsAsync();
     }
 
@@ -272,12 +256,11 @@ else
     {
         try
         {
-            
             meds = await Api.GetMedsById(id);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching pet data: {ex.Message}");
+            Console.WriteLine($"Error fetching meds: {ex.Message}");
         }
         finally
         {
@@ -299,7 +282,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching pet data: {ex.Message}");
+            Console.WriteLine($"Error fetching pet: {ex.Message}");
         }
         finally
         {

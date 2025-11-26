@@ -1,51 +1,65 @@
 @page "/"
 @using EpicPetEMR_Ui.Services
-@using EpicPetEMR.Shared.Models 
-@using EpicPetEMR_Ui.ViewModels;
+@using EpicPetEMR.Shared.Models
+@using EpicPetEMR_Ui.ViewModels
 @inject PetApi Api
+@inject MedicationScheduleService Scheduler
+
+<div style="margin-bottom: 1rem;">
+    <label style="font-weight: bold; margin-right: 10px;">Shift:</label>
+
+    <select @onchange="OnShiftChanged" style="padding:5px; font-size:1rem;">
+        <option value="day" selected="@(_shift == "day")">Day (07:00–19:00)</option>
+        <option value="night" selected="@(_shift == "night")">Night (20:00–06:00)</option>
+    </select>
+</div>
+<style>
 
 
-
+</style>
 <div class="board">
     <div class="grid" style="grid-template-columns:@GridTemplateColumns">
-        <!-- corner header -->
+
         <div class="cell header sticky-left corner">Patient</div>
 
-        <!-- hour headers -->
-        @for (var h = StartHour; h <= EndHour; h++)
+        @foreach (var h in Hours)
         {
             <div class="cell header">@($"{h:00}:00")</div>
-        } 
+        }
 
-        <!-- data rows -->
         @for (int idx = 0; idx < _pets.Count; idx++)
         {
             var p = _pets[idx];
-          
             var rowClass = (idx % 2 == 0) ? "row-even" : "row-odd";
 
-            <!-- left sticky name cell -->
-            <div class="cell sticky-left @rowClass">  <a href="petprofile/@p.Pet.Id">@p.Pet.Name</a></div>
+            <div class="cell sticky-left @rowClass">
+                <a href="petprofile/@p.Pet.Id">@p.Pet.Name</a>
+            </div>
 
-            <!-- hour cells -->
-            @for (var h = StartHour; h <= EndHour; h++)
+            @foreach (var h in Hours)
             {
                 string? text = null;
-                var hasText = Tasks.TryGetValue(p.Pet.Id, out var perHour) && perHour.TryGetValue(h, out text);
+                var hasText = Tasks.TryGetValue(p.Pet.Id, out var perHour) &&
+                              perHour.TryGetValue(h, out text);
+
                 var done = Completed.Contains((p.Pet.Id, h));
 
-                <div class="cell @rowClass @(done ? "done" : null)"
+                <div class="cell task-cell @rowClass @(done ? "done" : null)"
                      data-patient-id="@p.Pet.Id"
                      data-hour="@h"
                      @onclick="@(() => Toggle(p.Pet.Id, h))">
-                   @foreach (var med in @p.Medications)
+
+                    @if (hasText)
                     {
-                        if (h == 7 && med.Frequency != 0)
-                        {
-                            <span class="task-dot"></span>
-                            <span class="task">@med.Name</span>
-                        }
-                      
+                        <div class="task-wrap">
+
+                            <i class="fa-solid fa-prescription-bottle fa-2xl task-icon"></i>
+
+                            <div class="task-badge">
+                                @text
+                            </div>
+
+                        </div>
                     }
                 </div>
             }
@@ -53,56 +67,117 @@
     </div>
 </div>
 
+<style>
+
+.task-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.task-icon {
+    color: #483a73;
+    transition: opacity 0.3s ease-in-out;
+}
+
+
+.task-badge {
+    position: absolute;
+    opacity: 0;
+    transform: scale(0.85);
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #6b5fb4, #8d82e7);
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+
+    box-shadow: 0 0 12px rgba(110, 90, 190, 0.7);
+    transition: opacity 0.3s ease, transform 0.25s ease;
+}
+
+
+.task-cell:hover .task-badge {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.task-cell:hover .task-icon {
+    opacity: 0;
+}
+</style>
+
 @code {
-    [Parameter] public int StartHour { get; set; } = 7;   // 07:00
-    [Parameter] public int EndHour { get; set; } = 19;    // 19:00 (7 PM)
+    private string _shift = "day";
+
+    [Parameter] public int StartHour { get; set; } = 7;
+    [Parameter] public int EndHour { get; set; } = 19;
+
     private bool _loading = true;
     private string? _error;
     private List<PetWithMedsVm> _pets = new();
 
+    public Dictionary<int, Dictionary<int, string>> Tasks { get; set; } = new();
 
-    protected override async Task OnInitializedAsync()
+    private HashSet<(int patientId, int hour)> Completed { get; } = new();
+
+    private List<int> Hours
     {
-        try
+        get
         {
-            _pets = await Api.GetPetsAsync(includeMeds: true);
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
-        finally
-        {
-            _loading = false;
+            if (StartHour <= EndHour)
+                return Enumerable.Range(StartHour, EndHour - StartHour + 1).ToList();
+
+            var late = Enumerable.Range(StartHour, 24 - StartHour);
+            var early = Enumerable.Range(0, EndHour + 1);
+            return late.Concat(early).ToList();
         }
     }
 
-    private int HourCount => EndHour - StartHour + 1;
-    private string GridTemplateColumns => $"var(--left-col) repeat({HourCount}, var(--cell))";
+    private string GridTemplateColumns =>
+        $"var(--left-col) repeat({Hours.Count}, var(--cell))";
 
-    // Example data – replace/bind with DB/API later
-    public List<PatientRow> Patients { get; set; } = new();
-
-    
-
-    // tasks[patientId][hour] = "task text"
-    public Dictionary<int, Dictionary<int, string>> Tasks { get; set; } = new()
+    protected override async Task OnInitializedAsync()
     {
-        [1] = new() { [8] = "AM meds", [12] = "Vitals", [18] = "PM meds" },
-        [2] = new() { [7] = "Labs", [9] = "PT eval", [11] = "I/O check" },
-        [3] = new() { [14] = "Glucose" },
-        [4] = new() { [10] = "New order", [16] = "Shift reassess" }
-    };
+        await Load();
+    }
 
-    private HashSet<(int patientId, int hour)> Completed { get; } = new();
+    private async Task Load()
+    {
+        _pets = await Api.GetPetsAsync(includeMeds: true);
+        Tasks = Scheduler.BuildBrainSchedule(_pets, StartHour, EndHour);
+        _loading = false;
+    }
+
+    private async Task OnShiftChanged(ChangeEventArgs e)
+    {
+        _shift = e.Value?.ToString()?.ToLower() ?? "day";
+
+        if (_shift == "night")
+        {
+            StartHour = 20;
+            EndHour = 6;
+        }
+        else
+        {
+            StartHour = 7;
+            EndHour = 19;
+        }
+
+        await Load();
+        StateHasChanged();
+    }
 
     private void Toggle(int patientId, int hour)
     {
         var key = (patientId, hour);
         if (!Completed.Add(key))
-        {
             Completed.Remove(key);
-        }
     }
 
     public record PatientRow(int Id, string Name);

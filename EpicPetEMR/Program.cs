@@ -157,7 +157,15 @@ app.MapPost("/addmedication", async (AppDbContext db, MedicationDto medicationDt
     return Results.Created($"/addmedication/{medication.Id}", medication);
 })
 .WithName("AddMedication");
+app.MapPost("/addmedicationtwo", async (AppDbContext db, MedicationDto medicationDto) =>
+{
+    var medication = medicationDto.ToEntity();
+    db.Medications.Add(medication);
+    await db.SaveChangesAsync();
 
+    return Results.Created($"/addmedication/{medication.Id}", medication);
+})
+.WithName("AddMedicationTwo");
 
 // Save an edited pet
 app.MapPut("/updatepet", async (AppDbContext db, PetDto petDto) =>

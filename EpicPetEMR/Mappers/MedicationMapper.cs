@@ -18,6 +18,7 @@ public static class MedicationMapper
             Frequency = med.Frequency,
             Instructions = med.Instructions,
             StartDate = med.StartDate,
+            StartTime = med.StartTime,      // ← FIXED
             EndDate = med.EndDate,
             IsActive = med.IsActive
         };
@@ -36,12 +37,12 @@ public static class MedicationMapper
             Frequency = dto.Frequency,
             Instructions = dto.Instructions,
             StartDate = dto.StartDate,
+            StartTime = dto.StartTime,      // ← FIXED
             EndDate = dto.EndDate,
             IsActive = dto.IsActive
         };
     }
 
-    // Helper for updating an existing EF entity
     public static void UpdateEntity(this Medication entity, MedicationDto dto)
     {
         entity.Name = dto.Name;
@@ -51,6 +52,7 @@ public static class MedicationMapper
         entity.Frequency = dto.Frequency;
         entity.Instructions = dto.Instructions;
         entity.StartDate = dto.StartDate;
+        entity.StartTime = dto.StartTime;  // ← FIXED
         entity.EndDate = dto.EndDate;
         entity.IsActive = dto.IsActive;
     }

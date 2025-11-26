@@ -16,6 +16,10 @@ public sealed class MedicationDto
     public string? Instructions { get; set; }
 
     public DateOnly? StartDate { get; set; }
+
+    public TimeOnly? StartTime { get; set; }
+
+
     public DateOnly? EndDate { get; set; }
 
     public bool IsActive { get; set; }
