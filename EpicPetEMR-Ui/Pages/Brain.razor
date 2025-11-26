@@ -35,34 +35,43 @@
             <div class="cell sticky-left @rowClass">
                 <a href="petprofile/@p.Pet.Id">@p.Pet.Name</a>
             </div>
-
+            @foreach (var task in Tasks)
+            {
+                Console.WriteLine(task);
+            }
             @foreach (var h in Hours)
             {
-                string? text = null;
-                var hasText = Tasks.TryGetValue(p.Pet.Id, out var perHour) &&
-                              perHour.TryGetValue(h, out text);
+                List<(int MedId, string Name)> meds = null;
+                var hasMeds = Tasks.TryGetValue(p.Pet.Id, out var perHour) &&
+                perHour.TryGetValue(h, out meds);
 
                 var done = Completed.Contains((p.Pet.Id, h));
 
                 <div class="cell task-cell @rowClass @(done ? "done" : null)"
                      data-patient-id="@p.Pet.Id"
-                     data-hour="@h"
-                     @onclick="@(() => Toggle(p.Pet.Id, h))">
+                     data-hour="@h">
 
-                    @if (hasText)
+                    @if (hasMeds)
                     {
                         <div class="task-wrap">
 
                             <i class="fa-solid fa-prescription-bottle fa-2xl task-icon"></i>
 
-                            <div class="task-badge">
-                                @text
-                            </div>
+                            @foreach (var med in meds)
+                            {
+                                <div class="task-badge"
+                                     data-med-id="@med.MedId"
+                                     @* @onclick="@(() => ToggleMed(p.Pet.Id, h, med.MedId))" *@
+                                >
 
+                                    @med.Name
+                                </div>
+                            }
                         </div>
                     }
                 </div>
             }
+
         }
     </div>
 </div>

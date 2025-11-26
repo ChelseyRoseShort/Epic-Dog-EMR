@@ -6,12 +6,14 @@ namespace EpicPetEMR_Ui.Services;
 public sealed class MedicationScheduleService
 {
     // --- BRAIN SCHEDULE BUILDER ---
-    public Dictionary<int, Dictionary<int, string>> BuildBrainSchedule(
+    public record MedScheduleItem(int MedId, string Name);
+
+    public Dictionary<int, Dictionary<int, List<MedScheduleItem>>> BuildBrainSchedule(
         List<PetWithMedsVm> pets,
         int startHour,
         int endHour)
     {
-        var tasks = new Dictionary<int, Dictionary<int, string>>();
+        var tasks = new Dictionary<int, Dictionary<int, List<MedScheduleItem>>>();
 
         foreach (var p in pets)
         {
@@ -19,14 +21,9 @@ public sealed class MedicationScheduleService
 
             foreach (var med in p.Medications)
             {
-                if (!med.IsActive)
-                    continue;
-
-                if (IsPrn(med.Frequency))
-                    continue;
-
-                if (med.StartDate is null || med.StartTime is null)
-                    continue;
+                if (!med.IsActive) continue;
+                if (IsPrn(med.Frequency)) continue;
+                if (med.StartDate is null || med.StartTime is null) continue;
 
                 int interval = GetIntervalHours(med.Frequency);
 
@@ -38,7 +35,6 @@ public sealed class MedicationScheduleService
                     endHour
                 );
 
-                // Now map dose hours to the Brain window
                 foreach (var dose in doses)
                 {
                     int hour = dose.Hour;
@@ -46,22 +42,29 @@ public sealed class MedicationScheduleService
                     if (!IsHourInRange(hour, startHour, endHour))
                         continue;
 
+                    // get or create per-hour dictionary
                     if (!tasks.TryGetValue(petId, out var perHour))
                     {
-                        perHour = new Dictionary<int, string>();
+                        perHour = new Dictionary<int, List<MedScheduleItem>>();
                         tasks[petId] = perHour;
                     }
 
-                    if (perHour.TryGetValue(hour, out var existing))
-                        perHour[hour] = $"{existing}, {med.Name}";
-                    else
-                        perHour[hour] = med.Name;
+                    // get or create list for this hour
+                    if (!perHour.TryGetValue(hour, out var list))
+                    {
+                        list = new List<MedScheduleItem>();
+                        perHour[hour] = list;
+                    }
+
+                    // Add both ID + Name here
+                    list.Add(new MedScheduleItem(med.Id, med.Name));
                 }
             }
         }
 
         return tasks;
     }
+
 
 
 
