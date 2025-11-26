@@ -22,5 +22,7 @@ public sealed class MedicationDto
 
     public DateOnly? EndDate { get; set; }
 
+    public DateTime? LastGiven { get; set; }
+
     public bool IsActive { get; set; }
 }
