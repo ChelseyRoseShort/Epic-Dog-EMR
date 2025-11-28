@@ -1,12 +1,13 @@
 using EpicPetEMR.Api.Data;
-using Microsoft.EntityFrameworkCore;
+using EpicPetEMR.Api.Mappers;
+using EpicPetEMR.Api.Models;
 using EpicPetEMR.Mappers;
 using EpicPetEMR.Shared.Models;
-using EpicPetEMR.Api.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
-using EpicPetEMR.Api.Mappers;
+using static System.Net.WebRequestMethods;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,6 +108,13 @@ app.MapGet("/getpet/{id}", async (AppDbContext db, int id) =>
 })
 .WithName("getpetbyid")
 .WithOpenApi();
+
+app.MapGet("/getmed/{id}", async (AppDbContext db, int id) =>
+{
+    var med = await db.Medications.FirstOrDefaultAsync(m => m.Id == id);
+    return Results.Ok(med.ToDto());
+}).WithName("GetMedById").WithOpenApi();
+
 
 // add profile pic 
 app.MapPost("/uploadprofilepic/{id}", async (int id, IFormFile file, AppDbContext db, IWebHostEnvironment env) =>

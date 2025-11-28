@@ -1,0 +1,71 @@
+﻿@page "/mar/task/{petId:int}/{medId:int}/{hour:int}"
+@using EpicPetEMR_Ui.Services
+@using EpicPetEMR.Shared.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using EpicPetEMR_Ui.Modals
+@inject PetApi Api
+
+@if (isLoading)
+{
+    <p>Loading pet data...</p>
+}
+else if (pet == null)
+{
+    <p>Pet not found.</p>
+    <button @onclick="ReloadPet" class="btn btn-success">Reload1Pet</button>
+}
+else
+{
+    
+<h3>Medication Administration Record </h3>
+<h2>@pet.Name</h2>
+<h2>@med.Name, @med.DoseValue @med.DoseType @med.Route @med.Frequency</h2>
+<h2>@med.LastGiven</h2>
+}
+
+
+@code {
+    [Parameter] public int PetId { get; set; }
+    [Parameter] public int medId { get; set; }
+    [Parameter] public int hour { get; set; }
+
+    private PetDto? pet;
+    private MedicationDto? med;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            pet = await Api.GetPetById(PetId);
+            med = await Api.GetMedById(medId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching pet data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ReloadPet()
+    {
+        try
+        {
+            pet = await Api.GetPetById(PetId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching pet: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+}

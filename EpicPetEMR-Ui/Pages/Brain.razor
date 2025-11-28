@@ -5,6 +5,7 @@
 @using static EpicPetEMR_Ui.Services.MedicationScheduleService
 @inject PetApi Api
 @inject MedicationScheduleService Scheduler
+@inject NavigationManager Nav
 
 <div style="margin-bottom: 1rem;">
     <label style="font-weight: bold; margin-right: 10px;">Shift:</label>
@@ -62,9 +63,12 @@
                             @foreach (var med in meds)
                             {
                                 <div class="task-badge"
-                                     data-med-id="@med.MedId"
-                                      @onclick="@(() => ToggleMed(p.Pet.Id, med.MedId))" 
-                                >
+                                     data-med-id="@med.MedId">
+                                       <button @onclick="() => GoToMAR(p.Pet.Id, med.MedId, h)">
+                    Open MAR
+                </button>
+
+                                
 
                                     @med.Name
                                     @med.MedId
@@ -195,4 +199,14 @@
     }
 
     public record PatientRow(int Id, string Name);
+
+  
+
+    void GoToMAR(int petId, int medId, int hour)
+    {
+        Nav.NavigateTo($"/mar/task/{petId}/{medId}/{hour}");
+    }
+
+
+
 }

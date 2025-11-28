@@ -97,6 +97,9 @@ public sealed class PetApi
     public async Task<List<MedicationDto>> GetMedsById(int id, CancellationToken ct = default)
        => await _http.GetFromJsonAsync<List<MedicationDto>>($"pets/{id}/medications", ct);
 
+    public async Task<MedicationDto> GetMedById(int id, CancellationToken ct = default)
+        => await _http.GetFromJsonAsync<MedicationDto>($"getmed/{id}", ct);
+
    
 
     public async Task<MedicationDto> AddMedAsync(MedicationDto newMedication)
