@@ -4,44 +4,125 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using EpicPetEMR_Ui.Modals
 @inject PetApi Api
+@inject IJSRuntime JS
 
-<h3>Pet Profile</h3>
+<div class="pet-profile-container">
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading pet data...</p>
+        </div>
+    }
+    else if (pet == null)
+    {
+        <div class="error-state">
+            <p>Pet not found.</p>
+            <button @onclick="ReloadPet" class="btn-primary">Try Again</button>
+        </div>
+    }
+    else
+    {
+        <header class="profile-header">
+            <div>
+                <h1>@pet.Name</h1>
+                <span class="badge species">@pet.Species</span>
+            </div>
+            <div class="header-details">
+                <span><strong>Breed:</strong> @pet.Breed</span>
+                <span><strong>Age:</strong> @CalculatePetAge(pet.DateOfBirth)</span>
+            </div>
+        </header>
 
-@if (isLoading)
-{
-    <p>Loading pet data...</p>
-}
-else if (pet == null)
-{
-    <p>Pet not found.</p>
-    <button @onclick="ReloadPet" class="btn btn-success">Reload1Pet</button>
-}
-else
-{
-    <div class="pet-profile">
+        <div class="profile-grid">
 
-        <AddMedication IsOpen="AddMed"
-                       Title="Add Medication"
-                       OnClose="() => AddMed = false"
+            <aside class="profile-sidebar">
+                <div class="photo-card">
+                    <div class="image-wrapper">
+                        @if (!string.IsNullOrEmpty(pet.ProfilePic))
+                        {
+                            <img crossorigin="anonymous" class="pet-profile-image" src="@($"https://localhost:60174{pet.ProfilePic}")" alt="@pet.Name" />
+                        }
+                        else
+                        {
+                            <img crossorigin="anonymous" class="pet-profile-image" src="/images/default-pet.jpg" alt="Default Pet Profile" />
+                        }
+                    </div>
+
+                    <div class="upload-control">
+                        <label class="btn-outline-secondary btn-full-width">
+                            <i class="fa-solid fa-camera"></i> Change Photo
+                            <InputFile OnChange="UploadPhoto" accept="image/*" hidden />
+                        </label>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="profile-content">
+                <div class="section-header">
+                    <h2>Current Medications</h2>
+                    <button class="btn-primary" @onclick="OpenAddMedModal">
+                        <i class="fa-solid fa-plus"></i> Add Medication
+                    </button>
+                </div>
+
+                <div class="medication-grid">
+                    @if (meds.Any())
+                    {
+                        @foreach (var med in meds)
+                        {
+                            <div class="med-card">
+                                <div class="med-card-header">
+                                    <h3><i class="fa-solid fa-pills"></i> @med.Name</h3>
+                                    <span class="med-dose">@med.DoseValue @med.DoseType</span>
+                                </div>
+                                <div class="med-card-body">
+                                    <div class="detail-row">
+                                        <span>Route:</span> <strong>@med.Route</strong>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Freq:</span> <strong>@med.Frequency</strong>
+                                    </div>
+                                    <p class="med-instructions">@med.Instructions</p>
+                                </div>
+                                <div class="med-card-footer">
+                                    <button @onclick="() => ConfirmDelete(med)" class="btn-icon-danger" title="Delete">
+                                        <i class="fa-solid fa-trash-can"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fa-solid fa-prescription-bottle"></i>
+                            <p>No active medications.</p>
+                        </div>
+                    }
+                </div>
+            </main>
+        </div>
+
+        <AddMedication IsOpen="isAddMedOpen"
+                       Title="Add Prescription"
+                       OnClose="() => isAddMedOpen = false"
                        OnConfirm="SaveMedication">
 
-            <div class="med-row">
-
-                <h4>Medication</h4>
-
-                <div class="form-row">
-                    <label>Name</label>
-                    <input class="form-control" @bind="newMedication.Name" />
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Medication Name</label>
+                    <input class="form-input" @bind="newMedication.Name" placeholder="e.g. Amoxicillin" />
                 </div>
 
-                <div class="form-row">
+                <div class="form-group">
                     <label>Dose Value</label>
-                    <input type="number" class="form-control" @bind="newMedication.DoseValue" />
+                    <input type="number" class="form-input" @bind="newMedication.DoseValue" />
                 </div>
 
-                <div class="form-row">
-                    <label>Dose Type</label>
-                    <InputSelect TValue="Dosages" class="form-control" @bind-Value="newMedication.DoseType">
+                <div class="form-group">
+                    <label>Unit</label>
+                    <InputSelect @bind-Value="newMedication.DoseType" class="form-select">
                         @foreach (var value in Enum.GetValues<Dosages>())
                         {
                             <option value="@value">@value</option>
@@ -49,9 +130,9 @@ else
                     </InputSelect>
                 </div>
 
-                <div class="form-row">
+                <div class="form-group">
                     <label>Route</label>
-                    <InputSelect TValue="Routes" class="form-control" @bind-Value="newMedication.Route">
+                    <InputSelect @bind-Value="newMedication.Route" class="form-select">
                         @foreach (var value in Enum.GetValues<Routes>())
                         {
                             <option value="@value">@value</option>
@@ -59,9 +140,9 @@ else
                     </InputSelect>
                 </div>
 
-                <div class="form-row">
+                <div class="form-group">
                     <label>Frequency</label>
-                    <InputSelect TValue="Frequency" class="form-control" @bind-Value="newMedication.Frequency">
+                    <InputSelect @bind-Value="newMedication.Frequency" class="form-select">
                         @foreach (var value in Enum.GetValues<Frequency>())
                         {
                             <option value="@value">@value</option>
@@ -69,149 +150,191 @@ else
                     </InputSelect>
                 </div>
 
-                <div class="form-row">
+                <div class="form-group full-width">
                     <label>Instructions</label>
-                    <textarea class="form-control" @bind="newMedication.Instructions"></textarea>
+                    <textarea class="form-input" rows="2" @bind="newMedication.Instructions"></textarea>
                 </div>
 
-                <div class="form-row">
+                <div class="form-group">
                     <label>Start Date</label>
-                    <input type="date"
-                           class="form-control"
-                           @bind="newMedication.StartDate"
-                           @bind:format="yyyy-MM-dd" />
+                    <input type="date" class="form-input" @bind="newMedication.StartDate" />
                 </div>
 
-                <div class="form-row">
-                    <label>Start Time</label>
-
-                    <input type="time"
-                           class="form-control"
-                           step="60"
-                           @bind="newMedication.StartTime" />
-                </div>
-
-                <div class="form-row">
+                <div class="form-group">
                     <label>End Date</label>
-                    <input type="date"
-                           class="form-control"
-                           @bind="newMedication.EndDate"
-                           @bind:format="yyyy-MM-dd" />
+                    <input type="date" class="form-input" @bind="newMedication.EndDate" />
                 </div>
 
-                <div class="form-row checkbox-row">
-                    <label>Active?</label>
-                    <input type="checkbox" class="form-check-input" @bind="newMedication.IsActive" />
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="isActive" @bind="newMedication.IsActive" />
+                    <label for="isActive">Currently Active?</label>
                 </div>
-
             </div>
         </AddMedication>
 
-        <h4>@pet.Name (@pet.Species)</h4>
-        <p><strong>Breed:</strong> @pet.Breed</p>
-        <p><strong>Age:</strong> @CalculatePetAge(pet.DateOfBirth)</p>
-
-        <button @onclick="AddMedication" style="lighting-color">Add Medication</button>
-
-        <InputFile OnChange="UploadPhoto" accept="image/*" />
-
-        @if (!string.IsNullOrEmpty(pet.ProfilePic))
+        @if (showDeleteConfirm)
         {
-            <img src="@($"https://localhost:60174{pet.ProfilePic}")" style="max-width:300px;" />
-        }
-        else
-        {
-            <img src="https://external-preview.redd.it/4aDXjLN7Wgk59hNtHaN-hL8Nsz3CbH2r2EVFUVG4nBo.jpg?auto=webp&s=3e835496d5ef78fdb74ddef15749a665ee5de1e5"
-                 alt="Sample Dalmatian with heterochromia"
-                 style="max-width:300px; border-radius:10px;" />
-        }
-    </div>
-}
-
-<div class="current-medication-container">
-    <h2>Current Medications</h2>
-
-    @foreach (var med in meds)
-    {
-        <h3>@med.Name</h3>
-        <div>@med.DoseValue @med.DoseType</div>
-        <div><strong>Route</strong> @med.Route</div>
-        <div><strong>Frequency</strong> @med.Frequency</div>
-        <div>@med.Instructions</div>
-        <button @onclick="() => MedConfirmDelete(med)" class="alert-danger">Delete Medication</button>
-    }
-
-    @if (deleteconfirm)
-    {
-        <div class="modal-overlay">
-            <div class="modal-box">
-                <h4>Delete @MedToDelete.Name?</h4>
-                <p>Are you sure you want to delete this medication?</p>
-
-                <div class="modal-buttons">
-                    <button class="btn btn-danger" @onclick="async () => await DeleteMed(MedToDelete!)">Delete</button>
-                    <button class="btn btn-secondary" @onclick="() => deleteconfirm = false">Cancel</button>
+            <div class="modal-backdrop">
+                <div class="modal-content">
+                    <div class="modal-header warning">
+                        <h4>Delete Medication</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to remove <strong>@medToDelete?.Name</strong>?</p>
+                        <small>This action cannot be undone.</small>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-text" @onclick="() => showDeleteConfirm = false">Cancel</button>
+                        <button class="btn-danger" @onclick="DeleteMed">Yes, Delete</button>
+                    </div>
                 </div>
             </div>
-        </div>
+        }
     }
 </div>
 
 @code {
-    [Parameter] public int id { get; set; }
-
+    [Parameter] public int Id { get; set; }
+    private bool _themeApplied = false;
     private PetDto? pet;
-    private bool AddMed = false;
-    private bool isLoading = true;
-    private MedicationDto newMedication = new();
     private List<MedicationDto> meds = new();
-    private bool deleteconfirm = false;
-    private MedicationDto MedToDelete = new();
+    private MedicationDto newMedication = new();
+    private MedicationDto? medToDelete;
 
-    private async Task SaveMedication()
-    {
-        newMedication.PetId = pet.Id;
-
-        await Api.AddMedAsync(newMedication);
-        await ReloadMedsAsync();
-
-        AddMed = false;
-    }
+    private bool isLoading = true;
+    private bool isAddMedOpen = false;
+    private bool showDeleteConfirm = false;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_themeApplied && pet != null)
+        {
+            await ApplyPhotoTheme();
+            _themeApplied = true;
+        }
+    }
+
+    private async Task LoadData()
+    {
         try
         {
-            pet = await Api.GetPetById(id);
-            meds = await Api.GetMedsById(id);
+            isLoading = true;
+
+            var petTask = Api.GetPetById(Id);
+            var medsTask = Api.GetMedsById(Id);
+
+            await Task.WhenAll(petTask, medsTask);
+
+            pet = await petTask;
+            meds = await medsTask;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching pet data: {ex.Message}");
+            Console.WriteLine($"Error fetching data: {ex.Message}");
         }
         finally
         {
             isLoading = false;
-            StateHasChanged();
+            Console.WriteLine("Loaded");
+        
         }
+    }
+
+    private async Task ApplyPhotoTheme()
+    {
+        Console.WriteLine("applying color theme");
+        try
+        {
+            await Task.Delay(250); // wait for image to render
+
+            var colors = await JS.InvokeAsync<ColorPalette>(
+                "colorTools.extractColors",
+                "#app > div > main > article > div > div > aside > div > div.image-wrapper > img"
+            );
+
+
+            if (colors != null)
+            {
+                Console.WriteLine("Colors was not null");
+                await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--pet-primary", colors.Primary);
+                await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--pet-primary-dark", colors.PrimaryDark);
+                await JS.InvokeVoidAsync("document.documentElement.style.setProperty", "--pet-primary-light", colors.PrimaryLight);
+            }
+        }
+        catch
+        {
+            // fail silently, no theme applied
+            Console.WriteLine("caught");
+        }
+    }
+
+    private async Task ReloadPet() => await LoadData();
+
+    private void OpenAddMedModal()
+    {
+        newMedication = new MedicationDto
+        {
+            StartDate = DateOnly.FromDateTime(DateTime.Now),
+            IsActive = true
+        };
+        isAddMedOpen = true;
+    }
+
+    private async Task SaveMedication()
+    {
+        if (pet == null) return;
+
+        newMedication.PetId = pet.Id;
+        await Api.AddMedAsync(newMedication);
+
+        meds = await Api.GetMedsById(Id);
+        isAddMedOpen = false;
     }
 
     private async Task UploadPhoto(InputFileChangeEventArgs e)
     {
-        var file = e.File;
-        var UpdatedPet = await Api.UploadPetPhoto(pet.Id, file);
+        if (pet == null) return;
 
-        if (UpdatedPet != null)
+        try
         {
-            pet = UpdatedPet;
-            StateHasChanged();
-            ReloadPet();
+            var updatedPet = await Api.UploadPetPhoto(pet.Id, e.File);
+            if (updatedPet != null)
+            {
+                pet = updatedPet;
+
+                await Task.Delay(50);
+                await ApplyPhotoTheme();
+
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Upload failed: {ex.Message}");
         }
     }
 
-    private void AddMedication()
+    private void ConfirmDelete(MedicationDto m)
     {
-        AddMed = true;
+        medToDelete = m;
+        showDeleteConfirm = true;
+    }
+
+    private async Task DeleteMed()
+    {
+        if (medToDelete != null)
+        {
+            await Api.DeleteMed(medToDelete);
+            meds = await Api.GetMedsById(Id);
+        }
+
+        showDeleteConfirm = false;
+        medToDelete = null;
     }
 
     private string CalculatePetAge(DateOnly? dob)
@@ -219,75 +342,18 @@ else
         if (dob is null) return "Unknown";
 
         var today = DateOnly.FromDateTime(DateTime.Today);
+        var age = today.Year - dob.Value.Year;
 
-        int years = today.Year - dob.Value.Year;
-        int months = today.Month - dob.Value.Month;
+        if (dob.Value > today.AddYears(-age))
+            age--;
 
-        if (today.Day < dob.Value.Day) months--;
-
-        if (months < 0)
-        {
-            years--;
-            months += 12;
-        }
-
-        if (years <= 0 && months <= 0) return "Less than a month";
-        if (years <= 0) return $"{months} months";
-        if (months == 0) return $"{years} years";
-
-        return $"{years} years {months} months";
+        return age == 0 ? "Less than 1 year" : $"{age} years";
     }
 
-    private void MedConfirmDelete(MedicationDto Medication)
+    public class ColorPalette
     {
-        MedToDelete = Medication;
-        deleteconfirm = true;
-    }
-
-    private async Task DeleteMed(MedicationDto Medication)
-    {
-        deleteconfirm = false;
-        await Api.DeleteMed(Medication);
-        StateHasChanged();
-        await ReloadMedsAsync();
-    }
-
-    private async Task LoadMedsAsync()
-    {
-        try
-        {
-            meds = await Api.GetMedsById(id);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching meds: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task ReloadMedsAsync()
-    {
-        await LoadMedsAsync();
-    }
-
-    private async Task ReloadPet()
-    {
-        try
-        {
-            pet = await Api.GetPetById(id);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching pet: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
+        public string Primary { get; set; }
+        public string PrimaryDark { get; set; }
+        public string PrimaryLight { get; set; }
     }
 }

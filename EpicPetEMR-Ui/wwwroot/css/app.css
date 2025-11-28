@@ -2,6 +2,325 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+:root {
+    --pet-primary: #6aa3ff; /* default fallback */
+    --pet-primary-dark: #3c6fc4;
+    --pet-primary-light: #a7c7ff;
+    --primary: #0078d4;
+    --primary-hover: #005a9e;
+    --danger: #d13438;
+    --danger-hover: #a80000;
+    --surface: #ffffff;
+    --background: #f3f2f1;
+    --text-primary: #323130;
+    --text-secondary: #605e5c;
+    --border: #e1dfdd;
+    --radius: 8px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.pet-profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--text-primary);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* --- Header --- */
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+    .profile-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        display: inline-block;
+        margin-right: 1rem;
+    }
+
+.badge.species {
+    background-color: var(--pet-primary-light);
+    color: var(--pet-primary-dark);
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.header-details {
+    display: flex;
+    gap: 1.5rem;
+    color: var(--text-secondary);
+}
+
+/* --- Layout Grid --- */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Sidebar / Photo --- */
+.photo-card {
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.image-wrapper {
+    width: 100%;
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    background-color: #f0f0f0;
+}
+
+    .image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+/* --- Medication Content --- */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.medication-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* --- Medication Card --- */
+.med-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .med-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+    }
+
+.med-card-header {
+    background-color: var(--pet-primary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+    .med-card-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--pet-primary-dark);
+    }
+
+.med-dose {
+    font-weight: 700;
+    font-size: 0.9rem;
+    background: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+}
+
+.med-card-body {
+    padding: 1rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.med-instructions {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    background: #fafafa;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-style: italic;
+}
+
+.med-card-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* --- Forms (Inside Modal) --- */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-input, .form-select {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.checkbox-group {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* --- Buttons --- */
+.btn-primary {
+    background-color: var(--pet-primary-light);
+    color: var(--pet-primary-light);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+    .btn-primary:hover {
+        background-color: var(--primary-hover);
+    }
+
+.btn-outline-secondary {
+    display: inline-block;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-secondary);
+    background: transparent;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn-icon-danger {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+    .btn-icon-danger:hover {
+        color: var(--danger-hover);
+        text-decoration: underline;
+    }
+
+.btn-full-width {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- Simple Modal Overlay (For Delete) --- */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 0;
+    border-radius: var(--radius);
+    width: 90%;
+    max-width: 400px;
+    box-shadow: var(--shadow);
+}
+
+.modal-header.warning {
+    background: #fff4f4;
+    color: var(--danger);
+    padding: 1rem;
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+}
+
+.modal-header h4 {
+    margin: 0;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
 h1:focus {
     outline: none;
 }
@@ -11,8 +330,8 @@ a, .btn-link {
 }
 
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
+    color: var(--pet-primary-dark);
+   
     border-color: #1861ac;
 }
 
@@ -330,7 +649,160 @@ code {
     flex-wrap: wrap;
 }
 
+.pet-profile {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+}
+.epic-pet-button {
+    margin-bottom:1rem;
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #3a69f8, #274bd4);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: .3px;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+}
 
+    .epic-pet-button:hover {
+        background: linear-gradient(135deg, #4a7aff, #3357e6);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.22);
+    }
+
+    .epic-pet-button:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+    }
+
+    .epic-pet-button:disabled {
+        opacity: 0.6;
+        transform: none;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+.med-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.med-icon {
+    font-size: 1.4rem;
+    color: #3a69f8;
+}
+.med-line {
+    margin: 4px 0;
+    font-size: 1rem;
+    color: #444;
+}
+.current-medication-container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Container button */
+.epic-pet-file-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(135deg, #3a69f8, #274bd4);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+}
+
+    /* Hover */
+    .epic-pet-file-upload:hover {
+        background: linear-gradient(135deg, #4a7aff, #3357e6);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.22);
+    }
+
+    /* Icon */
+    .epic-pet-file-upload i {
+        font-size: 1.2rem;
+    }
+
+/* Hide actual file input */
+.epic-pet-file-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.medication-container {
+    margin-bottom: 1rem;
+    padding: 15px;
+    background: lightblue;
+    border-radius: 20px;
+}
+
+.epic-pet-delete-button {
+    font-size:12px;
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(135deg, #e8504f, #c62828);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+    letter-spacing: .3px;
+}
+
+    .epic-pet-delete-button:hover {
+        background: linear-gradient(135deg, #ff6161, #d32f2f);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.22);
+    }
+
+    .epic-pet-delete-button:active {
+        transform: translateY(0);
+    }
+
+    .epic-pet-delete-button i {
+        font-size: 12px;
+    }
+
+
+.pet-profile-image {
+    border-radius:20px;
+}
+.profile-picture-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column-reverse;
+    gap: 10px;
+}
 
 /* nice fade-in animation */
 @keyframes fadeIn {
