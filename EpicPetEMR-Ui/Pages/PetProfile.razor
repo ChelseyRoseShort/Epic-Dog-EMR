@@ -105,7 +105,7 @@
         </div>
 
         <AddMedication IsOpen="isAddMedOpen"
-                       Title="Add Prescription"
+                       Title="Add Medication"
                        OnClose="() => isAddMedOpen = false"
                        OnConfirm="SaveMedication">
 
@@ -164,10 +164,21 @@
                     <label>End Date</label>
                     <input type="date" class="form-input" @bind="newMedication.EndDate" />
                 </div>
+                  <div class="form-group">
+                    <label>Start Time</label>
 
-                <div class="form-group checkbox-group">
-                    <input type="checkbox" id="isActive" @bind="newMedication.IsActive" />
-                    <label for="isActive">Currently Active?</label>
+                    <input type="time"
+                           class="form-control"
+                           step="60"
+                           @bind="newMedication.StartTime" />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group checkbox-group full-width">
+                        <input type="checkbox" id="isActive" @bind="newMedication.IsActive" />
+                        <label for="isActive">Currently Active?</label>
+                    </div>
+
                 </div>
             </div>
         </AddMedication>
