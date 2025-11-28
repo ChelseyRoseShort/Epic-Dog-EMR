@@ -2,6 +2,7 @@
 @using EpicPetEMR_Ui.Services
 @using EpicPetEMR.Shared.Models
 @using EpicPetEMR_Ui.ViewModels
+@using static EpicPetEMR_Ui.Services.MedicationScheduleService
 @inject PetApi Api
 @inject MedicationScheduleService Scheduler
 
@@ -41,7 +42,8 @@
             }
             @foreach (var h in Hours)
             {
-                List<(int MedId, string Name)> meds = null;
+                List<MedScheduleItem> meds = null;
+
                 var hasMeds = Tasks.TryGetValue(p.Pet.Id, out var perHour) &&
                 perHour.TryGetValue(h, out meds);
 
@@ -61,10 +63,11 @@
                             {
                                 <div class="task-badge"
                                      data-med-id="@med.MedId"
-                                     @* @onclick="@(() => ToggleMed(p.Pet.Id, h, med.MedId))" *@
+                                      @onclick="@(() => ToggleMed(p.Pet.Id, med.MedId))" 
                                 >
 
                                     @med.Name
+                                    @med.MedId
                                 </div>
                             }
                         </div>
@@ -131,7 +134,9 @@
     private string? _error;
     private List<PetWithMedsVm> _pets = new();
 
-    public Dictionary<int, Dictionary<int, string>> Tasks { get; set; } = new();
+    private Dictionary<int, Dictionary<int, List<MedScheduleItem>>> Tasks;
+
+
 
     private HashSet<(int patientId, int hour)> Completed { get; } = new();
 
@@ -182,7 +187,7 @@
         StateHasChanged();
     }
 
-    private void Toggle(int patientId, int hour)
+    private void ToggleMed(int patientId, int hour)
     {
         var key = (patientId, hour);
         if (!Completed.Add(key))
