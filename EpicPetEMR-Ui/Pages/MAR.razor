@@ -1,4 +1,4 @@
-﻿@page "/mar/task/{petId:int}/{medId:int}/{hour:int}"
+﻿@page "/mar/task/{petId:int}/{hour:int}"
 @using EpicPetEMR_Ui.Services
 @using EpicPetEMR.Shared.Models
 @using Microsoft.AspNetCore.Components.Forms
@@ -19,26 +19,42 @@ else
     
 <h3>Medication Administration Record </h3>
 <h2>@pet.Name</h2>
-<h2>@med.Name, @med.DoseValue @med.DoseType @med.Route @med.Frequency</h2>
-<h2>@med.LastGiven</h2>
+    @foreach (var med in meds)
+    {
+        <input type="checkbox"
+               class="mar-checkbox"
+               @onclick="() => MarkGiven(pet.Id, med.Id, hour)" />
+        <h2>@med.Name, @($"{med.DoseValue:0.##}") @med.DoseType @med.Route @med.Frequency</h2>
+        <h2>@med.LastGiven</h2> <h2>Due at: @med.StartTime</h2>
+    }
+   
 }
 
 
 @code {
     [Parameter] public int PetId { get; set; }
-    [Parameter] public int medId { get; set; }
     [Parameter] public int hour { get; set; }
 
     private PetDto? pet;
-    private MedicationDto? med;
+    private List<MedicationDto> meds = new List<MedicationDto>();
     private bool isLoading = true;
+private int GetScheduledHour(MedicationDto med)
+{
+    if (med.StartTime is null)
+        return 0;
+
+    return med.StartTime.Value.Hour;
+}
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             pet = await Api.GetPetById(PetId);
-            med = await Api.GetMedById(medId);
+            meds = await Api.GetMedsById(PetId);
+            meds = meds
+            .OrderBy(m => Math.Abs(GetScheduledHour(m) - hour))
+            .ToList();
         }
         catch (Exception ex)
         {
@@ -67,5 +83,11 @@ else
             StateHasChanged();
         }
     }
+    void MarkGiven(int petId, int medId, int hour)
+    {
+        Console.WriteLine($"GIVEN → Pet:{petId}, Med:{medId}, Hour:{hour}");
+        // save to DB or tracking list later
+    }
+
 
 }

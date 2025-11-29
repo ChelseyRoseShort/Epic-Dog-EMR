@@ -37,10 +37,7 @@
             <div class="cell sticky-left @rowClass">
                 <a href="petprofile/@p.Pet.Id">@p.Pet.Name</a>
             </div>
-            @foreach (var task in Tasks)
-            {
-                Console.WriteLine(task);
-            }
+         
             @foreach (var h in Hours)
             {
                 List<MedScheduleItem> meds = null;
