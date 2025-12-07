@@ -23,10 +23,64 @@ else
     {
         <input type="checkbox"
                class="mar-checkbox"
-               @onclick="() => MarkGiven(pet.Id, med.Id, hour)" />
+               @onchange="e => ToggleSelected(pet.Id, med.Id, hour, e)" />
         <h2>@med.Name, @($"{med.DoseValue:0.##}") @med.DoseType @med.Route @med.Frequency</h2>
         <h2>@med.LastGiven</h2> <h2>Due at: @med.StartTime</h2>
+        @if (!meds.Any() && !prnmeds.Any())
+        {
+            <p>No medications due at @hour:00 (all charted).</p>
+        }
+        else
+        {
+            // your existing meds / prnmeds loops
+        }
     }
+    <h3>PRN Medications</h3>
+    @foreach (var med in prnmeds)
+    {
+        <input type="checkbox"
+               class="mar-checkbox"
+               @onchange="e => ToggleSelected(pet.Id, med.Id, hour, e)" />
+        <h2>@med.Name, @($"{med.DoseValue:0.##}") @med.DoseType @med.Route @med.Frequency</h2>
+        <h2>@med.LastGiven</h2>
+    }
+    <div class="mar-actions">
+        <button class="epic-pet-button" @onclick="MarkSelectedGiven">
+            Give Selected Medications
+        </button>
+
+        <button class="epic-pet-button alert-danger" @onclick="OpenHoldModal">
+            Hold Selected Medications
+        </button>
+    </div>
+    @if (_showHoldModal)
+    {
+        <div class="modal-overlay">
+            <div class="modal-container">
+                <h3>Hold Medications</h3>
+
+                <p>You are holding the selected medications. Please enter the reason:</p>
+
+                <textarea class="hold-textarea"
+                          @bind="_holdReason"
+                          placeholder="Enter reason for holding medication...">
+                    </textarea>
+
+                <div class="modal-buttons">
+                    <button class="epic-pet-button" @onclick="ConfirmHold" disabled="@string.IsNullOrWhiteSpace(_holdReason)">
+                        Submit Hold
+                    </button>
+
+                    <button class="epic-pet-button alert-danger" @onclick="CloseHoldModal">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+
+
    
 }
 
@@ -36,8 +90,18 @@ else
     [Parameter] public int hour { get; set; }
 
     private PetDto? pet;
+    private List<MedicationDto> allmeds = new List<MedicationDto>();
     private List<MedicationDto> meds = new List<MedicationDto>();
+    private List<MedicationDto> prnmeds = new List<MedicationDto>();
     private bool isLoading = true;
+    public bool IsPrn(Frequency freq)
+    {
+    return freq.ToString().StartsWith("AsNeeded");
+}
+    private bool _showHoldModal = false;
+    private string _holdReason = string.Empty;
+
+
 private int GetScheduledHour(MedicationDto med)
 {
     if (med.StartTime is null)
@@ -48,17 +112,43 @@ private int GetScheduledHour(MedicationDto med)
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadMarPageData();
+    }
+
+    private async Task LoadMarPageData()
+    {
+        isLoading = true;
+
         try
         {
             pet = await Api.GetPetById(PetId);
-            meds = await Api.GetMedsById(PetId);
-            meds = meds
-            .OrderBy(m => Math.Abs(GetScheduledHour(m) - hour))
-            .ToList();
+            allmeds = await Api.GetMedsById(PetId);
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            _marHistory = await Api.GetMarHistoryForDateAsync(today, PetId);
+
+            var completedAtHour = _marHistory
+                .Where(h =>
+                    h.Hour == hour &&
+                    (h.Action == MedicationAction.Given ||
+                     h.Action == MedicationAction.Held))
+                .Select(h => h.MedId)
+                .ToHashSet();
+
+            meds = allmeds
+                .Where(m => !IsPrn(m.Frequency) &&
+                            !completedAtHour.Contains(m.Id))
+                .OrderBy(m => Math.Abs(GetScheduledHour(m) - hour))
+                .ToList();
+
+            prnmeds = allmeds
+                .Where(m => IsPrn(m.Frequency) &&
+                            !completedAtHour.Contains(m.Id))
+                .ToList();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching pet data: {ex.Message}");
+            Console.WriteLine($"Error fetching MAR data: {ex.Message}");
         }
         finally
         {
@@ -66,6 +156,7 @@ private int GetScheduledHour(MedicationDto med)
             StateHasChanged();
         }
     }
+
 
     private async Task ReloadPet()
     {
@@ -83,11 +174,92 @@ private int GetScheduledHour(MedicationDto med)
             StateHasChanged();
         }
     }
-    void MarkGiven(int petId, int medId, int hour)
+    public record SelectedMed(int PetId, int MedId, int Hour);
+
+    private List<SelectedMed> _selectedMeds = new();
+
+    void ToggleSelected(int petId, int medId, int hour, ChangeEventArgs e)
     {
-        Console.WriteLine($"GIVEN → Pet:{petId}, Med:{medId}, Hour:{hour}");
-        // save to DB or tracking list later
+        bool selected = (bool)e.Value;
+
+        if (selected)
+        {
+            _selectedMeds.Add(new(petId, medId, hour));
+        }
+        else
+        {
+            _selectedMeds.RemoveAll(x =>
+                x.PetId == petId &&
+                x.MedId == medId &&
+                x.Hour == hour);
+        }
     }
+
+    async Task MarkSelectedGiven()
+    {
+        if (_selectedMeds.Count == 0) return;
+
+        await Api.MarkGivenAsync(_selectedMeds);
+
+        _selectedMeds.Clear();
+
+        // reload pet + meds + MAR history and re-filter
+        await LoadMarPageData();
+    }
+
+    private List<MARHistoryDto> _marHistory = new();
+    private bool _isLoadingHistory = false;
+
+    private async Task LoadGivenForPastYear()
+    {
+        _isLoadingHistory = true;
+
+        try
+        {
+            _marHistory = await Api.GetMARHistoryAsync()
+                          ?? new List<MARHistoryDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading MAR history: {ex.Message}");
+            _marHistory = new List<MARHistoryDto>();
+        }
+
+        _isLoadingHistory = false;
+
+        StateHasChanged();
+    }
+private void OpenHoldModal()
+{
+    if (_selectedMeds.Count == 0)
+        return; // no meds selected, do nothing
+
+    _holdReason = string.Empty;
+    _showHoldModal = true;
+}
+
+    private void CloseHoldModal()
+    {
+        _showHoldModal = false;
+        _holdReason = string.Empty;
+    }
+    private async Task ConfirmHold()
+    {
+        if (_selectedMeds.Count == 0)
+            return;
+
+        await Api.MarkHeldAsync(_selectedMeds, _holdReason);
+
+        _selectedMeds.Clear();
+        CloseHoldModal();
+
+        await LoadGivenForPastYear();
+    }
+
+
+
+    
+
 
 
 }

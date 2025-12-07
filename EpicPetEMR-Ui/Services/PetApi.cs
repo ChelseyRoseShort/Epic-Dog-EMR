@@ -1,8 +1,9 @@
 using EpicPetEMR.Shared.Models;
 using EpicPetEMR_Ui.ViewModels;
+using EpicPetEMR_Ui.ViewModels;
 using Microsoft.AspNetCore.Components.Forms;   // <- from Shared
 using System.Net.Http.Json;
-using EpicPetEMR_Ui.ViewModels;
+using static EpicPetEMR_Ui.Pages.MAR;
 namespace EpicPetEMR_Ui.Services;
 
 public sealed class PetApi
@@ -115,4 +116,50 @@ public sealed class PetApi
 
         return await response.Content.ReadFromJsonAsync<MedicationDto>();
     }
+    public async Task MarkGivenAsync(List<SelectedMed> selected)
+    {
+        var payload = selected.Select(x => new MARHistoryDto
+        {
+            PetId = x.PetId,
+            MedId = x.MedId,
+            Hour = x.Hour,
+            Action = MedicationAction.Given,
+            TimeRecorded = DateTime.UtcNow // not required, API overwrites, but nice for completeness
+        }).ToList();
+
+        await _http.PostAsJsonAsync("api/mar/given", payload);
+    }
+
+    public async Task<List<MARHistoryDto>> GetMARHistoryAsync()
+    {
+        var result = await _http.GetFromJsonAsync<List<MARHistoryDto>>("api/mar/history");
+        return result ?? new List<MARHistoryDto>();
+    }
+    public async Task MarkHeldAsync(List<SelectedMed> selected, string reason)
+    {
+        var payload = selected.Select(x => new MARHistoryDto
+        {
+            PetId = x.PetId,
+            MedId = x.MedId,
+            Hour = x.Hour,
+            Action = MedicationAction.Held,
+            Reason = reason
+        }).ToList();
+
+        await _http.PostAsJsonAsync("api/mar/given", payload);
+    }
+    public async Task<List<MARHistoryDto>> GetMarHistoryForDateAsync(DateOnly date, int? petId = null)
+    {
+        var isoDate = date.ToString("yyyy-MM-dd");
+
+        var url = petId.HasValue
+            ? $"api/mar/history/bydate?date={isoDate}&petId={petId.Value}"
+            : $"api/mar/history/bydate?date={isoDate}";
+
+        var result = await _http.GetFromJsonAsync<List<MARHistoryDto>>(url);
+
+        return result ?? new List<MARHistoryDto>();
+    }
+
+
 }

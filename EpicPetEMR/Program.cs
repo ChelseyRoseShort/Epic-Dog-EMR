@@ -10,6 +10,13 @@ using System.IO;
 using static System.Net.WebRequestMethods;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
+
+
 
 // CORS (dev-wide). Switch to a named, restricted policy later.
 builder.Services.AddCors(options =>
@@ -29,6 +36,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+app.MapControllers();
 
 // Order matters
 app.UseHttpsRedirection();

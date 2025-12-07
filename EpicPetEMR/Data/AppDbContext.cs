@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using EpicPetEMR.Api.Models;
 
 namespace EpicPetEMR.Api.Data;
@@ -11,6 +11,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Medication> Medications { get; set; } = default!;
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
+
+    public DbSet<MARHistory> MARHistory { get; set; }
+
+
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -37,4 +41,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         // Simple precision for decimals (SQLite)
         b.Entity<Pet>().Property(p => p.Weight).HasPrecision(6, 2);
     }
+
+
 }

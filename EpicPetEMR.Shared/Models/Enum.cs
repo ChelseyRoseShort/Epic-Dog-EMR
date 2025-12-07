@@ -11,3 +11,5 @@ public enum Dosages { Mg = 0, Ml = 1, Gm = 2, Mcg = 3, Units = 4, Puffs = 5, Dro
 public enum Frequency { OnceAMonth, OnceInMorning, OnceInEvening, TwiceADay, ThreeTimesADay, FourTimesADay, AsNeededEveryTwoHours, AsNeededEveryFourHours, AsNeededEverySixHours,AsNeededEveryTwelveHours }
 
 public enum Routes { ByMouth, IV, EyeDrops, EarDrops, Puffs, IntramuscularShot, SubcutaneousShot, Topical,  }
+
+public enum MedicationAction { Given = 0, Held = 1 }
