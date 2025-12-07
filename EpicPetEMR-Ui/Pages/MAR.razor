@@ -7,108 +7,247 @@
 
 @if (isLoading)
 {
-    <p>Loading pet data...</p>
+    <div class="mar-state mar-state-loading">
+        <div class="mar-spinner"></div>
+        <p>Loading pet data...</p>
+    </div>
 }
 else if (pet == null)
 {
-    <p>Pet not found.</p>
-    <button @onclick="ReloadPet" class="btn btn-success">Reload1Pet</button>
+    <div class="mar-state mar-state-error">
+        <h2>Pet not found.</h2>
+        <p>We couldn’t load this MAR. Try reloading the pet.</p>
+        <button @onclick="ReloadPet" class="epic-pet-button">
+            Reload Pet
+        </button>
+    </div>
 }
 else
 {
-    
-<h3>Medication Administration Record </h3>
-<h2>@pet.Name</h2>
-    @foreach (var med in meds)
-    {
-        <input type="checkbox"
-               class="mar-checkbox"
-               @onchange="e => ToggleSelected(pet.Id, med.Id, hour, e)" />
-        <h2>@med.Name, @($"{med.DoseValue:0.##}") @med.DoseType @med.Route @med.Frequency</h2>
-        <h2>@med.LastGiven</h2> <h2>Due at: @med.StartTime</h2>
-        @if (!meds.Any() && !prnmeds.Any())
+    <div class="mar-page-container">
+        <header class="mar-header">
+            <div>
+                <p class="mar-badge">MAR</p>
+                <h1 class="mar-title">Medication Administration Record</h1>
+                <p class="mar-subtitle">Real-time charting for this hour.</p>
+            </div>
+            <div class="mar-header-meta">
+                <div class="mar-pet-name">@pet.Name</div>
+                <div class="mar-hour-chip">@hour:00</div>
+            </div>
+        </header>
+
+        <section class="mar-summary">
+            <div class="mar-summary-item">
+                <span class="mar-summary-label">Scheduled Meds</span>
+                <span class="mar-summary-value">@meds.Count</span>
+            </div>
+            <div class="mar-summary-item">
+                <span class="mar-summary-label">PRN Meds</span>
+                <span class="mar-summary-value">@prnmeds.Count</span>
+            </div>
+            <div class="mar-summary-item">
+                <span class="mar-summary-label">Selected</span>
+                <span class="mar-summary-value">@_selectedMeds.Count</span>
+            </div>
+        </section>
+
+        <div class="mar-layout">
+            <!-- Scheduled meds -->
+            <section class="mar-column">
+                <div class="mar-section-header">
+                    <h2>Scheduled Medications</h2>
+                    <p>Medications due around @hour:00.</p>
+                </div>
+
+                @if (meds == null || !meds.Any())
+                {
+                    <p class="mar-empty">
+                        No scheduled medications due at @hour:00 (all charted 🎉).
+                    </p>
+                }
+                else
+                {
+                    @foreach (var med in meds)
+                    {
+                        <article class="mar-med-card">
+                            <label class="mar-med-checkbox">
+                                <input type="checkbox"
+                                       class="mar-checkbox"
+                                       @onchange="e => ToggleSelected(pet.Id, med.Id, hour, e)" />
+                                <span class="mar-checkbox-custom"></span>
+                            </label>
+
+                            <div class="mar-med-content">
+                                <h3 class="mar-med-name">
+                                    @med.Name
+                                </h3>
+                                <p class="mar-med-details">
+                                    @($"{med.DoseValue:0.##}") @med.DoseType &bull;
+                                    @med.Route &bull;
+                                    @med.Frequency
+                                </p>
+
+                                <div class="mar-med-meta">
+                                    <span class="mar-chip mar-chip-primary">
+                                        Due at @med.StartTime
+                                    </span>
+                                    @if (med.LastGiven != null)
+                                    {
+                                        <span class="mar-chip mar-chip-muted">
+                                            Last given: @med.LastGiven
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </article>
+                    }
+                }
+            </section>
+
+            <!-- PRN meds -->
+            <section class="mar-column">
+                <div class="mar-section-header">
+                    <h2>PRN Medications</h2>
+                    <p>Available as needed for this pet.</p>
+                </div>
+
+                @if (prnmeds == null || !prnmeds.Any())
+                {
+                    <p class="mar-empty">
+                        No PRN medications available right now.
+                    </p>
+                }
+                else
+                {
+                    @foreach (var med in prnmeds)
+                    {
+                        <article class="mar-med-card mar-med-card-prn">
+                            <label class="mar-med-checkbox">
+                                <input type="checkbox"
+                                       class="mar-checkbox"
+                                       @onchange="e => ToggleSelected(pet.Id, med.Id, hour, e)" />
+                                <span class="mar-checkbox-custom"></span>
+                            </label>
+
+                            <div class="mar-med-content">
+                                <h3 class="mar-med-name">
+                                    @med.Name
+                                    <span class="mar-chip mar-chip-prn">PRN</span>
+                                </h3>
+                                <p class="mar-med-details">
+                                    @($"{med.DoseValue:0.##}") @med.DoseType &bull;
+                                    @med.Route &bull;
+                                    @med.Frequency
+                                </p>
+
+                                @if (med.LastGiven != null)
+                                {
+                                    <div class="mar-med-meta">
+                                        <span class="mar-chip mar-chip-muted">
+                                            Last given: @med.LastGiven
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        </article>
+                    }
+                }
+            </section>
+        </div>
+
+        <div class="mar-actions">
+            <button class="epic-pet-button epic-pet-button-outlined"
+                    @onclick="OpenHoldModal"
+                    disabled="@(_selectedMeds.Count == 0)">
+                Hold Selected
+            </button>
+
+            <button class="epic-pet-button"
+                    @onclick="MarkSelectedGiven"
+                    disabled="@(_selectedMeds.Count == 0)">
+                Give Selected
+            </button>
+        </div>
+
+        @if (_showHoldModal)
         {
-            <p>No medications due at @hour:00 (all charted).</p>
-        }
-        else
-        {
-            // your existing meds / prnmeds loops
-        }
-    }
-    <h3>PRN Medications</h3>
-    @foreach (var med in prnmeds)
-    {
-        <input type="checkbox"
-               class="mar-checkbox"
-               @onchange="e => ToggleSelected(pet.Id, med.Id, hour, e)" />
-        <h2>@med.Name, @($"{med.DoseValue:0.##}") @med.DoseType @med.Route @med.Frequency</h2>
-        <h2>@med.LastGiven</h2>
-    }
-    <div class="mar-actions">
-        <button class="epic-pet-button" @onclick="MarkSelectedGiven">
-            Give Selected Medications
-        </button>
+            <div class="modal-overlay">
+                <div class="modal-container">
+                    <h3>Hold Medications</h3>
+                    <p>Provide a brief reason for holding the selected medications.</p>
 
-        <button class="epic-pet-button alert-danger" @onclick="OpenHoldModal">
-            Hold Selected Medications
-        </button>
-    </div>
-    @if (_showHoldModal)
-    {
-        <div class="modal-overlay">
-            <div class="modal-container">
-                <h3>Hold Medications</h3>
+                    <textarea class="hold-textarea"
+                              @bind="_holdReason"
+                              placeholder="Reason for hold (required)">
+                            </textarea>
 
-                <p>You are holding the selected medications. Please enter the reason:</p>
+                    <div class="modal-buttons">
+                        <button class="epic-pet-button"
+                                @onclick="ConfirmHold"
+                                disabled="@string.IsNullOrWhiteSpace(_holdReason)">
+                            Submit Hold
+                        </button>
 
-                <textarea class="hold-textarea"
-                          @bind="_holdReason"
-                          placeholder="Enter reason for holding medication...">
-                    </textarea>
-
-                <div class="modal-buttons">
-                    <button class="epic-pet-button" @onclick="ConfirmHold" disabled="@string.IsNullOrWhiteSpace(_holdReason)">
-                        Submit Hold
-                    </button>
-
-                    <button class="epic-pet-button alert-danger" @onclick="CloseHoldModal">
-                        Cancel
-                    </button>
+                        <button class="epic-pet-button epic-pet-button-outlined"
+                                @onclick="CloseHoldModal">
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 
+       <div class="mar-page-container">
+           @foreach (var history in _marHistory)
+        {
+            <div class="mar-med-content">
+          
+                <p class="mar-med-details">
+                   @allmeds.FirstOrDefault(x => x.Id == history.MedId)?.Name
+                </p>
 
-
-   
+                <div class="mar-med-meta">
+                    <span class="mar-chip mar-chip-primary">
+                       
+                        @history.TimeRecorded
+                    </span>
+                </div>
+            </div>
+        }
+    </div>
 }
-
 
 @code {
     [Parameter] public int PetId { get; set; }
     [Parameter] public int hour { get; set; }
 
     private PetDto? pet;
-    private List<MedicationDto> allmeds = new List<MedicationDto>();
-    private List<MedicationDto> meds = new List<MedicationDto>();
-    private List<MedicationDto> prnmeds = new List<MedicationDto>();
+    private List<MedicationDto> allmeds = new();
+    private List<MedicationDto> meds = new();
+    private List<MedicationDto> prnmeds = new();
     private bool isLoading = true;
-    public bool IsPrn(Frequency freq)
-    {
-    return freq.ToString().StartsWith("AsNeeded");
-}
+
     private bool _showHoldModal = false;
     private string _holdReason = string.Empty;
 
+    private List<MARHistoryDto> _marHistory = new();
+    private bool _isLoadingHistory = false;
 
-private int GetScheduledHour(MedicationDto med)
-{
-    if (med.StartTime is null)
-        return 0;
+    public record SelectedMed(int PetId, int MedId, int Hour);
+    private List<SelectedMed> _selectedMeds = new();
 
-    return med.StartTime.Value.Hour;
-}
+    public bool IsPrn(Frequency freq)
+        => freq.ToString().StartsWith("AsNeeded");
+
+    private int GetScheduledHour(MedicationDto med)
+    {
+        if (med.StartTime is null)
+            return 0;
+
+        return med.StartTime.Value.Hour;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -157,7 +296,6 @@ private int GetScheduledHour(MedicationDto med)
         }
     }
 
-
     private async Task ReloadPet()
     {
         try
@@ -174,9 +312,6 @@ private int GetScheduledHour(MedicationDto med)
             StateHasChanged();
         }
     }
-    public record SelectedMed(int PetId, int MedId, int Hour);
-
-    private List<SelectedMed> _selectedMeds = new();
 
     void ToggleSelected(int petId, int medId, int hour, ChangeEventArgs e)
     {
@@ -202,13 +337,8 @@ private int GetScheduledHour(MedicationDto med)
         await Api.MarkGivenAsync(_selectedMeds);
 
         _selectedMeds.Clear();
-
-        // reload pet + meds + MAR history and re-filter
         await LoadMarPageData();
     }
-
-    private List<MARHistoryDto> _marHistory = new();
-    private bool _isLoadingHistory = false;
 
     private async Task LoadGivenForPastYear()
     {
@@ -226,23 +356,24 @@ private int GetScheduledHour(MedicationDto med)
         }
 
         _isLoadingHistory = false;
-
         StateHasChanged();
     }
-private void OpenHoldModal()
-{
-    if (_selectedMeds.Count == 0)
-        return; // no meds selected, do nothing
 
-    _holdReason = string.Empty;
-    _showHoldModal = true;
-}
+    private void OpenHoldModal()
+    {
+        if (_selectedMeds.Count == 0)
+            return;
+
+        _holdReason = string.Empty;
+        _showHoldModal = true;
+    }
 
     private void CloseHoldModal()
     {
         _showHoldModal = false;
         _holdReason = string.Empty;
     }
+
     private async Task ConfirmHold()
     {
         if (_selectedMeds.Count == 0)
@@ -255,11 +386,4 @@ private void OpenHoldModal()
 
         await LoadGivenForPastYear();
     }
-
-
-
-    
-
-
-
 }
