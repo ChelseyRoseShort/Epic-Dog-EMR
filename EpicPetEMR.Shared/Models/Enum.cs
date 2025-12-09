@@ -13,3 +13,9 @@ public enum Frequency { OnceAMonth, OnceInMorning, OnceInEvening, TwiceADay, Thr
 public enum Routes { ByMouth, IV, EyeDrops, EarDrops, Puffs, IntramuscularShot, SubcutaneousShot, Topical,  }
 
 public enum MedicationAction { Given = 0, Held = 1 }
+
+public enum VetTripReason { Wellness = 0, Sick = 1, Surgery = 2}
+
+public enum DocumentType { VetTrip = 0, Assessment = 1}
+
+

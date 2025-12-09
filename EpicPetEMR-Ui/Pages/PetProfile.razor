@@ -57,6 +57,9 @@
                     </div>
                 </div>
             </aside>
+            <button class="btn-primary" @onclick="OpenAddVetTripModal">
+                <i class="fa-solid fa-plus"></i> Add Veterinary Appointment
+            </button>
 
             <main class="profile-content">
                 <div class="section-header">
@@ -182,6 +185,46 @@
                 </div>
             </div>
         </AddMedication>
+        // replace form input bindings with newVetTrip properties
+        <AddVetTrip IsOpen="isAddVetTripOpen"
+                       Title="Add Veterinary Appointment"
+                       OnClose="() => isAddVetTripOpen = false"
+                       OnConfirm="SaveVetTrip">
+
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Hospital</label>
+                    <input class="form-input" @bind="newVetTrip.Hospital" placeholder="e.g. Healing Paws Veterinary Center " />
+                </div>
+
+                <div class="form-group">
+                    <label>Veterinarian</label>
+                    <input class="form-input" @bind="newVetTrip.Vet" />
+                </div>
+
+                <div class="form-group">
+                    <label>Visit Type</label>
+                    <InputSelect @bind-Value="newVetTrip.Reason" class="form-select">
+                        @foreach (var value in Enum.GetValues<VetTripReason>())
+                        {
+                            <option value="@value">@value</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="form-group">
+                    <label>Appointment Date</label>
+                    <input type="datetime-local"
+                           class="form-input"
+                           step="60"
+                           @bind="newVetTrip.VisitDateTime"
+                           @bind:format="yyyy-MM-ddTHH:mm"
+                           min="@_minDateTimeLocal" />
+                </div>
+
+                </div>
+            
+        </AddVetTrip>
 
         @if (showDeleteConfirm)
         {
@@ -211,10 +254,16 @@
     private List<MedicationDto> meds = new();
     private MedicationDto newMedication = new();
     private MedicationDto? medToDelete;
+    private VetTripDto newVetTrip = new();
+    private List<VetTripDto> vetTrips = new();
 
     private bool isLoading = true;
     private bool isAddMedOpen = false;
+    private bool isAddVetTripOpen = false;
     private bool showDeleteConfirm = false;
+    private string _minDateTimeLocal => DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -252,7 +301,7 @@
         {
             isLoading = false;
             Console.WriteLine("Loaded");
-        
+
         }
     }
 
@@ -296,6 +345,22 @@
         isAddMedOpen = true;
     }
 
+    private void OpenAddVetTripModal()
+    {
+        var now = DateTime.Now;
+        newVetTrip.VisitDateTime = new DateTime(
+            now.Year, now.Month, now.Day,
+            now.Hour, now.Minute, 0,
+            DateTimeKind.Local);
+    
+    isAddVetTripOpen = true;
+    }
+
+
+    
+
+
+
     private async Task SaveMedication()
     {
         if (pet == null) return;
@@ -305,6 +370,17 @@
 
         meds = await Api.GetMedsById(Id);
         isAddMedOpen = false;
+    }
+
+    private async Task SaveVetTrip()
+    {
+        if (pet == null) return;
+
+        newVetTrip.PetId = pet.Id;
+        await Api.AddVetTripAsync(newVetTrip);
+
+        
+        isAddVetTripOpen = false;
     }
 
     private async Task UploadPhoto(InputFileChangeEventArgs e)

@@ -4,6 +4,7 @@ using EpicPetEMR_Ui.ViewModels;
 using Microsoft.AspNetCore.Components.Forms;   // <- from Shared
 using System.Net.Http.Json;
 using static EpicPetEMR_Ui.Pages.MAR;
+using static System.Net.WebRequestMethods;
 namespace EpicPetEMR_Ui.Services;
 
 public sealed class PetApi
@@ -148,7 +149,20 @@ public sealed class PetApi
 
         await _http.PostAsJsonAsync("api/mar/given", payload);
     }
-    public async Task<List<MARHistoryDto>> GetMarHistoryForDateAsync(DateOnly date, int? petId = null)
+
+   
+
+public async Task<VetTripDto?> AddVetTripAsync(VetTripDto dto)
+{
+    var response = await _http.PostAsJsonAsync("api/vettrips", dto);
+
+    response.EnsureSuccessStatusCode();
+
+   
+    return await response.Content.ReadFromJsonAsync<VetTripDto>();
+}
+
+public async Task<List<MARHistoryDto>> GetMarHistoryForDateAsync(DateOnly date, int? petId = null)
     {
         var isoDate = date.ToString("yyyy-MM-dd");
 

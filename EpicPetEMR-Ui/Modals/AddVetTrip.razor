@@ -1,0 +1,30 @@
+﻿@namespace EpicPetEMR_Ui.Modals
+
+@if (IsOpen)
+{
+    <div class="modal-backdrop">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>@Title</h3>
+                <button class="close-btn" @onclick="OnClose">×</button>
+            </div>
+
+            <div class="modal-body">
+                @ChildContent   @* whatever you pass in from PetProfile *@
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-confirm" @onclick="OnConfirm">Save</button>
+                <button class="btn-cancel" @onclick="OnClose">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public string Title { get; set; } = "Add Vet Trip";
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

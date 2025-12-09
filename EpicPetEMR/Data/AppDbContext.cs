@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using EpicPetEMR.Api.Models;
+﻿using EpicPetEMR.Api.Models;
+using Microsoft.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
 
 namespace EpicPetEMR.Api.Data;
 
@@ -41,6 +42,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         // Simple precision for decimals (SQLite)
         b.Entity<Pet>().Property(p => p.Weight).HasPrecision(6, 2);
     }
+
+    public DbSet<VetTrip> VetTrips { get; set; } = null!;
+
+    public DbSet<PetDocument> PetDocuments { get; set; } = null!;
 
 
 }
