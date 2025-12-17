@@ -2,6 +2,8 @@ using EpicPetEMR.Shared.Models;
 using EpicPetEMR_Ui.ViewModels;
 using EpicPetEMR_Ui.ViewModels;
 using Microsoft.AspNetCore.Components.Forms;   // <- from Shared
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using static EpicPetEMR_Ui.Pages.MAR;
 using static System.Net.WebRequestMethods;
@@ -20,6 +22,31 @@ public sealed class PetApi
 
         return await _http.GetFromJsonAsync<List<PetDto>>(url, ct) ?? new();
     }
+
+    public async Task<List<PetDocumentDto>> GetPetDocumentsAsync(
+     int petId,
+     CancellationToken ct = default)
+    {
+        var url = $"api/documents/{petId}";
+        return await _http.GetFromJsonAsync<List<PetDocumentDto>>(url, ct) ?? new();
+    }
+
+    public async Task<List<VetTripDto>> GetVetTripsTodayAsync(
+     CancellationToken ct = default)
+    {
+        var url = $"api/vettrips/today";
+
+        return await _http.GetFromJsonAsync<List<VetTripDto>>(url, ct) ?? new();
+    }
+
+    public async Task<List<VetTripDto>> GetVetTripsByPet(
+    int petId,
+    CancellationToken ct = default)
+    {
+        var url = $"api/vettrips/by-pet/{petId}";
+        return await _http.GetFromJsonAsync<List<VetTripDto>>(url, ct) ?? new();
+    }
+
 
     public async Task<List<PetWithMedsVm>> GetPetsAsync(
      bool includeMeds = false,
@@ -57,6 +84,41 @@ public sealed class PetApi
         var response = await _http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task<PetDocumentDto> UploadPetDocumentAsync(
+    int petId,
+    IBrowserFile file,
+    string name,
+    DocumentType type,
+    int? vetTripId = null)
+{
+    const long maxFileSize = 20 * 1024 * 1024;
+
+    using var content = new MultipartFormDataContent();
+
+    var fileContent = new StreamContent(file.OpenReadStream(maxFileSize));
+    fileContent.Headers.ContentType =
+        new MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
+
+    content.Add(fileContent, "file", file.Name);
+
+    content.Add(new StringContent(name), "name");
+    content.Add(new StringContent(type.ToString()), "type");
+    if (vetTripId.HasValue)
+    {
+        content.Add(new StringContent(vetTripId.Value.ToString()), "vetTripId");
+    }
+
+    var response = await _http.PostAsync(
+        $"api/documents/{petId}/documents",
+        content);
+
+    response.EnsureSuccessStatusCode();
+
+    var dto = await response.Content.ReadFromJsonAsync<PetDocumentDto>();
+    return dto!;
+}
+
 
     // add photo function here
     public async Task<PetDto?> UploadPetPhoto(int Id, IBrowserFile file)
@@ -102,7 +164,8 @@ public sealed class PetApi
     public async Task<MedicationDto> GetMedById(int id, CancellationToken ct = default)
         => await _http.GetFromJsonAsync<MedicationDto>($"getmed/{id}", ct);
 
-   
+    public async Task<List<OhNoEventDto>> GetOhNoEventsById(int petId, CancellationToken ct = default)
+         => await _http.GetFromJsonAsync<List<OhNoEventDto>>($"api/{petId}/ohnoevents", ct);
 
     public async Task<MedicationDto> AddMedAsync(MedicationDto newMedication)
     {
@@ -117,6 +180,19 @@ public sealed class PetApi
 
         return await response.Content.ReadFromJsonAsync<MedicationDto>();
     }
+
+    public async Task<OhNoEventDto> AddOhNoEventAsync(OhNoEventDto _model)
+    {
+        var response = await _http.PostAsJsonAsync($"api/{_model.PetId}/ohnoevents", _model);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Error adding Oh No Event: {error}");
+            return null;
+        }
+        return await response.Content.ReadFromJsonAsync<OhNoEventDto>();
+    }
+    
     public async Task MarkGivenAsync(List<SelectedMed> selected)
     {
         var payload = selected.Select(x => new MARHistoryDto
@@ -175,5 +251,8 @@ public async Task<List<MARHistoryDto>> GetMarHistoryForDateAsync(DateOnly date, 
         return result ?? new List<MARHistoryDto>();
     }
 
-
+    
 }
+
+
+

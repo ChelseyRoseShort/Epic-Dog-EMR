@@ -3,8 +3,454 @@
 @using EpicPetEMR.Shared.Models
 @using Microsoft.AspNetCore.Components.Forms
 @using EpicPetEMR_Ui.Modals
+
+@using System.Reflection
+@using System.Globalization
+
 @inject PetApi Api
 @inject IJSRuntime JS
+
+<!-- Oh No Event Modal -->
+<AddMedication IsOpen="isAddOhNoOpen"
+               Title="Add Oh No Event"
+               OnClose="() => isAddOhNoOpen = false"
+               OnConfirm="SaveOhNoEvent">
+
+    <EditForm Model="_model">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <!-- Basics (always shown) -->
+        <div class="form-row">
+            <label>Type</label>
+            <InputSelect TValue="OhNoEventType"
+                         class="form-control"
+                         Value="_model.Type"
+                         ValueChanged="OnTypeChanged"
+                         ValueExpression="(() => _model.Type)"
+                         _model=new OhNoEventDto
+                         {
+                         Type=OhNoEventType.None,
+                         OccurredAt=DateTime.UtcNow
+                         };>
+                <option value="@OhNoEventType.None" disabled>Select an event type…</option>
+
+                @foreach (var t in Enum.GetValues<OhNoEventType>().Where(x => x != OhNoEventType.None))
+                {
+                    <option value="@t">@t</option>
+                }
+                
+            </InputSelect>
+        </div>
+
+        <div class="form-row">
+            <label>Notes</label>
+            <InputTextArea class="form-control" @bind-Value="_model.Notes" />
+        </div>
+
+        <!-- Generic flags (always shown) -->
+        <fieldset class="section">
+            <legend>General</legend>
+
+            <div class="form-row">
+                <label>Collapsed / fainted?</label>
+                @YesNoSelect(() => _model.EventCollapseOrFainting, v => _model.EventCollapseOrFainting = v)
+            </div>
+
+            <div class="form-row">
+                <label>During/after exercise?</label>
+                @YesNoSelect(() => _model.EventDuringOrAfterExercise, v => _model.EventDuringOrAfterExercise = v)
+            </div>
+
+            <div class="form-row">
+                <label>Heart rate (bpm)</label>
+                <InputNumber class="form-control" @bind-Value="_model.EventHeartRateIfKnown" />
+            </div>
+
+            <div class="form-row">
+                <label>Blue or pale gums?</label>
+                @YesNoSelect(() => _model.EventBlueOrPaleGums, v => _model.EventBlueOrPaleGums = v)
+            </div>
+        </fieldset>
+        @if (_model.Type != OhNoEventType.None)
+{
+        @if (_model.Type == OhNoEventType.Seizure)
+        {
+            <fieldset class="section">
+                <legend>Seizure</legend>
+
+                <div class="form-row">
+                    <label>Duration (seconds)</label>
+                    <InputNumber class="form-control" @bind-Value="_model.SeizureDurationSeconds" />
+                </div>
+
+                <div class="form-row">
+                    <label>Generalized?</label>
+                    @YesNoSelect(() => _model.SeizureWasGeneralized, v => _model.SeizureWasGeneralized = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Loss of consciousness?</label>
+                    @YesNoSelect(() => _model.SeizureLossOfConsciousness, v => _model.SeizureLossOfConsciousness = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Urinated?</label>
+                    @YesNoSelect(() => _model.SeizureUrination, v => _model.SeizureUrination = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Bowel movement?</label>
+                    @YesNoSelect(() => _model.SeizureIncontinentBM, v => _model.SeizureIncontinentBM = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Cluster today?</label>
+                    @YesNoSelect(() => _model.SeizureClusterToday, v => _model.SeizureClusterToday = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Count last 24h</label>
+                    <InputNumber class="form-control" @bind-Value="_model.SeizureCountLast24Hours" />
+                </div>
+
+                <div class="form-row">
+                    <label>Post-ictal description</label>
+                    <InputTextArea class="form-control" @bind-Value="_model.SeizurePostIctalDescription" />
+                </div>
+
+                <div class="form-row">
+                    <label>Possible trigger</label>
+                    <InputText class="form-control" @bind-Value="_model.SeizurePossibleTrigger" />
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.Bleeding)
+        {
+            <fieldset class="section">
+                <legend>Bleeding</legend>
+
+                <div class="form-row">
+                    <label>Location</label>
+                    <InputText class="form-control" @bind-Value="_model.BleedingLocation" />
+                </div>
+
+                <div class="form-row">
+                    <label>Active bleeding?</label>
+                    @YesNoSelect(() => _model.BleedingIsActive, v => _model.BleedingIsActive = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Amount estimate</label>
+                    <InputText class="form-control" @bind-Value="_model.BleedingAmountEstimate" />
+                </div>
+
+                <div class="form-row">
+                    <label>On blood thinner meds?</label>
+                    @YesNoSelect(() => _model.BleedingOnBloodThinnerMedication, v => _model.BleedingOnBloodThinnerMedication = v)
+                </div>
+
+                <div class="form-row">
+                    <label>First aid given</label>
+                    <InputTextArea class="form-control" @bind-Value="_model.BleedingFirstAidGiven" />
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.GI)
+        {
+            <fieldset class="section">
+                <legend>GI</legend>
+
+                <div class="form-row">
+                    <label>Vomiting?</label>
+                    @YesNoSelect(() => _model.GiVomiting, v => _model.GiVomiting = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Diarrhea?</label>
+                    @YesNoSelect(() => _model.GiDiarrhea, v => _model.GiDiarrhea = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Blood in vomit?</label>
+                    @YesNoSelect(() => _model.GiBloodInVomit, v => _model.GiBloodInVomit = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Blood in stool?</label>
+                    @YesNoSelect(() => _model.GiBloodInStool, v => _model.GiBloodInStool = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Last normal meal time</label>
+                    <InputText class="form-control" @bind-Value="_model.GiLastNormalMealTime" />
+                </div>
+
+                <div class="form-row">
+                    <label>Foreign body suspected?</label>
+                    @YesNoSelect(() => _model.GiForeignBodySuspected, v => _model.GiForeignBodySuspected = v)
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.Cardiac)
+        {
+            <fieldset class="section">
+                <legend>Cardiac</legend>
+
+                <div class="form-row">
+                    <label>Known heart disease?</label>
+                    @YesNoSelect(() => _model.CardiacKnownHeartDisease, v => _model.CardiacKnownHeartDisease = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Rhythm description</label>
+                    <InputTextArea class="form-control" @bind-Value="_model.CardiacRhythmDescription" />
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.Respiratory)
+        {
+            <fieldset class="section">
+                <legend>Respiratory</legend>
+
+                <div class="form-row">
+                    <label>Labored breathing?</label>
+                    @YesNoSelect(() => _model.RespLaboredBreathing, v => _model.RespLaboredBreathing = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Open-mouth breathing?</label>
+                    @YesNoSelect(() => _model.RespOpenMouthBreathing, v => _model.RespOpenMouthBreathing = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Coughing?</label>
+                    @YesNoSelect(() => _model.RespCoughing, v => _model.RespCoughing = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Respiratory rate (breaths/min)</label>
+                    <InputNumber class="form-control" @bind-Value="_model.RespRespiratoryRate" />
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.Trauma)
+        {
+            <fieldset class="section">
+                <legend>Trauma</legend>
+
+                <div class="form-row">
+                    <label>Type of trauma</label>
+                    <InputText class="form-control" @bind-Value="_model.TraumaType" />
+                </div>
+
+                <div class="form-row">
+                    <label>Loss of consciousness?</label>
+                    @YesNoSelect(() => _model.TraumaLossOfConsciousness, v => _model.TraumaLossOfConsciousness = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Visible injuries</label>
+                    <InputTextArea class="form-control" @bind-Value="_model.TraumaVisibleInjuries" />
+                </div>
+
+                <div class="form-row">
+                    <label>Limping?</label>
+                    @YesNoSelect(() => _model.TraumaLimping, v => _model.TraumaLimping = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Bleeding present?</label>
+                    @YesNoSelect(() => _model.TraumaBleedingPresent, v => _model.TraumaBleedingPresent = v)
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.AccidentalIngestion)
+        {
+            <fieldset class="section">
+                <legend>Accidental ingestion / toxin</legend>
+
+                <div class="form-row">
+                    <label>Substance name</label>
+                    <InputText class="form-control" @bind-Value="_model.IngestionSubstanceName" />
+                </div>
+
+                <div class="form-row">
+                    <label>Estimated amount</label>
+                    <InputText class="form-control" @bind-Value="_model.IngestionEstimatedAmount" />
+                </div>
+
+                <div class="form-row">
+                    <label>Approx time</label>
+                    <InputDate class="form-control" @bind-Value="_model.IngestionApproxTime" />
+                </div>
+
+                <div class="form-row">
+                    <label>Vomited after?</label>
+                    @YesNoSelect(() => _model.IngestionVomitedAfter, v => _model.IngestionVomitedAfter = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Poison control contacted?</label>
+                    @YesNoSelect(() => _model.IngestionPoisonControlContacted, v => _model.IngestionPoisonControlContacted = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Poison control case number</label>
+                    <InputText class="form-control" @bind-Value="_model.IngestionPoisonControlCaseNumber" />
+                </div>
+
+                <div class="form-row">
+                    <label>Poison control advice</label>
+                    <InputTextArea class="form-control" @bind-Value="_model.IngestionPoisonControlAdvice" />
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.Urinary)
+        {
+            <fieldset class="section">
+                <legend>Urinary</legend>
+
+                <div class="form-row">
+                    <label>Straining?</label>
+                    @YesNoSelect(() => _model.UrinaryStraining, v => _model.UrinaryStraining = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Frequent small amounts?</label>
+                    @YesNoSelect(() => _model.UrinaryFrequentSmallAmounts, v => _model.UrinaryFrequentSmallAmounts = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Blood in urine?</label>
+                    @YesNoSelect(() => _model.UrinaryBloodInUrine, v => _model.UrinaryBloodInUrine = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Last normal urination time</label>
+                    <InputText class="form-control" @bind-Value="_model.UrinaryLastNormalUrinationTime" />
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.PainMobility)
+        {
+            <fieldset class="section">
+                <legend>Pain / Mobility</legend>
+
+                <div class="form-row">
+                    <label>Sudden onset?</label>
+                    @YesNoSelect(() => _model.PainSuddenOnset, v => _model.PainSuddenOnset = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Location</label>
+                    <InputText class="form-control" @bind-Value="_model.PainLocation" />
+                </div>
+
+                <div class="form-row">
+                    <label>Non-weight bearing?</label>
+                    @YesNoSelect(() => _model.PainNonWeightBearing, v => _model.PainNonWeightBearing = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Pain score (0–10)</label>
+                    <InputNumber class="form-control" @bind-Value="_model.PainScoreOutOfTen" />
+                </div>
+
+                <div class="form-row">
+                    <label>Crying out?</label>
+                    @YesNoSelect(() => _model.PainCryingOut, v => _model.PainCryingOut = v)
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.Behavior)
+        {
+            <fieldset class="section">
+                <legend>Behavior</legend>
+
+                <div class="form-row">
+                    <label>Sudden aggression?</label>
+                    @YesNoSelect(() => _model.BehaviorSuddenAggression, v => _model.BehaviorSuddenAggression = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Restless / pacing?</label>
+                    @YesNoSelect(() => _model.BehaviorRestlessOrPacing, v => _model.BehaviorRestlessOrPacing = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Disorientation?</label>
+                    @YesNoSelect(() => _model.BehaviorDisorientation, v => _model.BehaviorDisorientation = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Getting stuck in corners?</label>
+                    @YesNoSelect(() => _model.BehaviorGettingStuckInCorners, v => _model.BehaviorGettingStuckInCorners = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Hiding / withdrawn?</label>
+                    @YesNoSelect(() => _model.BehaviorHidingOrWithdrawn, v => _model.BehaviorHidingOrWithdrawn = v)
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.Medication)
+        {
+            <fieldset class="section">
+                <legend>Medication</legend>
+
+                <div class="form-row">
+                    <label>Missed dose?</label>
+                    @YesNoSelect(() => _model.MedMissedDose, v => _model.MedMissedDose = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Extra dose?</label>
+                    @YesNoSelect(() => _model.MedExtraDose, v => _model.MedExtraDose = v)
+                </div>
+
+                <div class="form-row">
+                    <label>Medication name</label>
+                    <InputText class="form-control" @bind-Value="_model.MedName" />
+                </div>
+
+                <div class="form-row">
+                    <label>Estimated extra amount</label>
+                    <InputText class="form-control" @bind-Value="_model.MedEstimatedExtraAmount" />
+                </div>
+
+                <div class="form-row">
+                    <label>Event time</label>
+                    <InputDate class="form-control" @bind-Value="_model.MedEventTime" />
+                </div>
+
+                <div class="form-row">
+                    <label>Observed side effects</label>
+                    <InputTextArea class="form-control" @bind-Value="_model.MedObservedSideEffects" />
+                </div>
+            </fieldset>
+        }
+        else if (_model.Type == OhNoEventType.Other)
+        {
+            <fieldset class="section">
+                <legend>Other</legend>
+
+                <div class="form-row">
+                    <label>Title</label>
+                    <InputText class="form-control" @bind-Value="_model.OtherTitle" />
+                </div>
+            </fieldset>
+        }
+     }
+
+        
+    </EditForm>
+</AddMedication>
+
+
+<div>
+    <button @onclick="OpenOhNoEventModal" class="btn-primary"> Oh No! Event </button>
+</div>
 
 <div class="pet-profile-container">
     @if (isLoading)
@@ -23,6 +469,7 @@
     }
     else
     {
+        <!-- Profile Header -->
         <header class="profile-header">
             <div>
                 <h1>@pet.Name</h1>
@@ -33,19 +480,45 @@
                 <span><strong>Age:</strong> @CalculatePetAge(pet.DateOfBirth)</span>
             </div>
         </header>
+        <div class="tab-switcher-container">
+        <div class="tab-switcher">
+<button class="tab-button @(activeTab == "Medications" ? "active-tab" : "")"
+        @onclick="@(() => SwitchToTab("Medications"))">
+    Medications
+</button>
 
+<button class="tab-button @(activeTab == "Documents" ? "active-tab" : "")"
+        @onclick="@(() => SwitchToTab("Documents"))">
+    Documents
+</button>
+
+<button class="tab-button @(activeTab == "OhNos" ? "active-tab" : "")"
+        @onclick="@(() => SwitchToTab("OhNos"))">
+    Oh No's
+</button>
+
+
+        </div>
+        </div>
+        <!-- Profile Grid Layout -->
         <div class="profile-grid">
-
+            <!-- Sidebar: Photo Card -->
             <aside class="profile-sidebar">
                 <div class="photo-card">
                     <div class="image-wrapper">
                         @if (!string.IsNullOrEmpty(pet.ProfilePic))
                         {
-                            <img crossorigin="anonymous" class="pet-profile-image" src="@($"https://localhost:60174{pet.ProfilePic}")" alt="@pet.Name" />
+                            <img crossorigin="anonymous"
+                                 class="pet-profile-image"
+                                 src="@($"https://localhost:60174{pet.ProfilePic}")"
+                                 alt="@pet.Name" />
                         }
                         else
                         {
-                            <img crossorigin="anonymous" class="pet-profile-image" src="/images/default-pet.jpg" alt="Default Pet Profile" />
+                            <img crossorigin="anonymous"
+                                 class="pet-profile-image"
+                                 src="/images/default-pet.jpg"
+                                 alt="Default Pet Profile" />
                         }
                     </div>
 
@@ -56,11 +529,15 @@
                         </label>
                     </div>
                 </div>
-            </aside>
-            <button class="btn-primary" @onclick="OpenAddVetTripModal">
-                <i class="fa-solid fa-plus"></i> Add Veterinary Appointment
-            </button>
 
+                <!-- Add Vet Appointment Button -->
+                <button class="btn-primary" @onclick="OpenAddVetTripModal">
+                    <i class="fa-solid fa-plus"></i> Add Veterinary Appointment
+                </button>
+            </aside>
+
+            <!-- Main Content: Medications -->
+           
             <main class="profile-content">
                 <div class="section-header">
                     <h2>Current Medications</h2>
@@ -68,7 +545,10 @@
                         <i class="fa-solid fa-plus"></i> Add Medication
                     </button>
                 </div>
-
+ @if (activeTab == "Medications")
+            {
+                
+            
                 <div class="medication-grid">
                     @if (meds.Any())
                     {
@@ -89,7 +569,9 @@
                                     <p class="med-instructions">@med.Instructions</p>
                                 </div>
                                 <div class="med-card-footer">
-                                    <button @onclick="() => ConfirmDelete(med)" class="btn-icon-danger" title="Delete">
+                                    <button @onclick="() => ConfirmDelete(med)"
+                                            class="btn-icon-danger"
+                                            title="Delete">
                                         <i class="fa-solid fa-trash-can"></i> Delete
                                     </button>
                                 </div>
@@ -104,23 +586,177 @@
                         </div>
                     }
                 </div>
+            }
+            else if (activeTab == "OhNos")
+            {
+
+                <div class="ohno-events-section">
+                <h2>@pet.Name's Oh No Events</h2>
+                @if (OhNoEvents.Any())
+                {
+                    <ul class="oh-no-events-list">
+                        @foreach(var ohno in OhNoEvents)
+                        {
+                           @foreach (var prop in typeof(OhNoEventDto).GetProperties())
+                           {
+                            var value = prop.GetValue(ohno);
+                            @if(value ==  null)
+                            {
+                                continue;
+                            }
+                            @if (value is bool b && b == false)
+                            {
+                                continue;
+                            }
+                            <li>
+                                <strong>@prop.Name:</strong> @prop.GetValue(ohno)
+                            </li>
+                           }
+                        }
+                    </ul>
+                }
+                </div>
+            }
+              else if (activeTab == "Documents")
+            {
+
+                <div class="documents-section">
+                <h2>@pet.Name's Documents</h2>
+                   <section class="vet-documents-section">
+                    <h2>@pet.Name's Veterinary Documents</h2>
+
+                    @foreach (var trip in vetTrips)
+                    {
+                        var hasDocs = docsandVetTrips.TryGetValue(trip.Id, out var docsForTrip)
+                                      && docsForTrip.Count > 0;
+
+                        if (!hasDocs)
+                        {
+                            continue;
+                        }
+
+                        <div class="vet-trip-card">
+                            <h3>Vet Trip on @trip.VisitDateTime.ToString("MMMM dd, yyyy")</h3>
+                            <h4>@trip.Hospital</h4>
+
+                            <div class="documents-list">
+                                <strong>Documents:</strong>
+
+                                <ul class="documents-grid">
+                                    @foreach (var doc in docsForTrip)
+                                    {
+                                        <li class="document-card">
+                                            <div class="document-thumb">
+                                                @if (doc.ContentType?.StartsWith("image/") == true)
+                                                {
+                                                    <img src="@($"https://localhost:60174/api/documents/{doc.Id}/preview")"
+                                                         alt="@doc.FileName"
+                                                         class="document-thumb-img" />
+                                                }
+                                                else if (doc.ContentType == "application/pdf")
+                                                {
+                                                    <div class="document-thumb-icon pdf-icon">
+                                                        PDF
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="document-thumb-icon file-icon">
+                                                        FILE
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <div class="document-info">
+                                                <div class="document-name">@doc.FileName</div>
+
+                                                <div class="document-meta">
+                                                    Uploaded @doc.UploadedAt
+                                                </div>
+
+                                                <div class="document-actions">
+                                                    @if (doc.ContentType == "application/pdf")
+                                                    {
+                                                        <button type="button"
+                                                                class="btn-doc"
+                                                                @onclick="() => OpenPdfPreview(doc.Id)">
+                                                            Preview
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a class="btn-doc"
+                                                           href="@($"https://localhost:60174/api/documents/{doc.Id}/preview")"
+                                                           target="_blank">
+                                                            View
+                                                        </a>
+                                                    }
+
+                                                    <a class="btn-doc secondary"
+                                                       download
+                                                       href="@($"https://localhost:60174/api/documents/{doc.Id}/download")">
+                                                        Download
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                </section>
+                </div>
+            }
             </main>
         </div>
+
+        <!-- All Documents Toggle -->
+        <section class="all-documents-section">
+            <button class="btn-primary" @onclick="ToggleDocuments">
+                @(showdocuments ? "Hide" : "Show") @pet.Name's Documents
+            </button>
+
+            @if (showdocuments)
+            {
+             
+            }
+        </section>
+
+        @if (!string.IsNullOrEmpty(pdfPreviewUrl))
+        {
+            <div class="pdf-preview-overlay">
+                <div class="pdf-preview-dialog">
+                    <button type="button"
+                            class="pdf-close-btn"
+                            @onclick="ClosePdfPreview">
+                        ×
+                    </button>
+
+                    <iframe src="@pdfPreviewUrl"
+                            style="width:100%; height:80vh; border:none;">
+                    </iframe>
+                </div>
+            </div>
+        }
 
         <AddMedication IsOpen="isAddMedOpen"
                        Title="Add Medication"
                        OnClose="() => isAddMedOpen = false"
                        OnConfirm="SaveMedication">
-
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label>Medication Name</label>
-                    <input class="form-input" @bind="newMedication.Name" placeholder="e.g. Amoxicillin" />
+                    <input class="form-input"
+                           @bind="newMedication.Name"
+                           placeholder="e.g. Amoxicillin" />
                 </div>
 
                 <div class="form-group">
                     <label>Dose Value</label>
-                    <input type="number" class="form-input" @bind="newMedication.DoseValue" />
+                    <input type="number"
+                           class="form-input"
+                           @bind="newMedication.DoseValue" />
                 </div>
 
                 <div class="form-group">
@@ -155,51 +791,59 @@
 
                 <div class="form-group full-width">
                     <label>Instructions</label>
-                    <textarea class="form-input" rows="2" @bind="newMedication.Instructions"></textarea>
+                    <textarea class="form-input"
+                              rows="2"
+                              @bind="newMedication.Instructions"></textarea>
                 </div>
 
                 <div class="form-group">
                     <label>Start Date</label>
-                    <input type="date" class="form-input" @bind="newMedication.StartDate" />
+                    <input type="date"
+                           class="form-input"
+                           @bind="newMedication.StartDate" />
                 </div>
 
                 <div class="form-group">
                     <label>End Date</label>
-                    <input type="date" class="form-input" @bind="newMedication.EndDate" />
+                    <input type="date"
+                           class="form-input"
+                           @bind="newMedication.EndDate" />
                 </div>
-                  <div class="form-group">
-                    <label>Start Time</label>
 
+                <div class="form-group">
+                    <label>Start Time</label>
                     <input type="time"
                            class="form-control"
                            step="60"
                            @bind="newMedication.StartTime" />
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group checkbox-group full-width">
-                        <input type="checkbox" id="isActive" @bind="newMedication.IsActive" />
-                        <label for="isActive">Currently Active?</label>
-                    </div>
-
+                <div class="form-group checkbox-group full-width">
+                    <input type="checkbox"
+                           id="isActive"
+                           @bind="newMedication.IsActive" />
+                    <label for="isActive">Currently Active?</label>
                 </div>
             </div>
         </AddMedication>
-        // replace form input bindings with newVetTrip properties
-        <AddVetTrip IsOpen="isAddVetTripOpen"
-                       Title="Add Veterinary Appointment"
-                       OnClose="() => isAddVetTripOpen = false"
-                       OnConfirm="SaveVetTrip">
 
+        <!-- Add Vet Trip Modal -->
+        <AddVetTrip IsOpen="isAddVetTripOpen"
+                    Title="Add Veterinary Appointment"
+                    OnClose="() => isAddVetTripOpen = false"
+                    OnConfirm="SaveVetTrip">
             <div class="form-grid">
                 <div class="form-group full-width">
                     <label>Hospital</label>
-                    <input class="form-input" @bind="newVetTrip.Hospital" placeholder="e.g. Healing Paws Veterinary Center " />
+                    <input class="form-input"
+                           @bind="newVetTrip.Hospital"
+                           placeholder="e.g. Healing Paws Veterinary Center" />
                 </div>
 
                 <div class="form-group">
                     <label>Veterinarian</label>
-                    <input class="form-input" @bind="newVetTrip.Vet" />
+                    <input class="form-input"
+                           @bind="newVetTrip.Vet" />
                 </div>
 
                 <div class="form-group">
@@ -218,12 +862,9 @@
                            class="form-input"
                            step="60"
                            @bind="newVetTrip.VisitDateTime"
-                           @bind:format="yyyy-MM-ddTHH:mm"
                            min="@_minDateTimeLocal" />
                 </div>
-
-                </div>
-            
+            </div>
         </AddVetTrip>
 
         @if (showDeleteConfirm)
@@ -238,8 +879,14 @@
                         <small>This action cannot be undone.</small>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn-text" @onclick="() => showDeleteConfirm = false">Cancel</button>
-                        <button class="btn-danger" @onclick="DeleteMed">Yes, Delete</button>
+                        <button class="btn-text"
+                                @onclick="() => showDeleteConfirm = false">
+                            Cancel
+                        </button>
+                        <button class="btn-danger"
+                                @onclick="DeleteMed">
+                            Yes, Delete
+                        </button>
                     </div>
                 </div>
             </div>
@@ -249,6 +896,13 @@
 
 @code {
     [Parameter] public int Id { get; set; }
+    // Tab section
+    private string activeTab = "Medications";
+
+    private void SwitchToTab(string tabName)
+    {
+        activeTab = tabName;
+    }
     private bool _themeApplied = false;
     private PetDto? pet;
     private List<MedicationDto> meds = new();
@@ -256,14 +910,187 @@
     private MedicationDto? medToDelete;
     private VetTripDto newVetTrip = new();
     private List<VetTripDto> vetTrips = new();
-
+    private List<PetDocumentDto> petDocuments = new();
+    private List<OhNoEventDto> OhNoEvents = new();
+    private bool showdocuments = false;
     private bool isLoading = true;
     private bool isAddMedOpen = false;
     private bool isAddVetTripOpen = false;
     private bool showDeleteConfirm = false;
     private string _minDateTimeLocal => DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
+    private Dictionary<int, List<PetDocumentDto>> docsandVetTrips = new();
+
+    private bool isAddOhNoOpen = false;
+
+    private OhNoEventDto _model = new()
+    {
+        OccurredAt = DateTime.UtcNow
+    };
+
+    private string? pdfPreviewUrl;
+
+    private RenderFragment YesNoSelect(Func<bool?> get, Action<bool?> set) => builder =>
+    {
+        var seq = 0;
+        var current = get() ?? false;
+
+        builder.OpenElement(seq++, "select");
+        builder.AddAttribute(seq++, "class", "form-control");
+        builder.AddAttribute(seq++, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+        {
+            var s = e.Value?.ToString();
+            var val = string.Equals(s, "true", StringComparison.OrdinalIgnoreCase);
+            set(val);
+        }));
+
+        // "No"
+        builder.OpenElement(seq++, "option");
+        builder.AddAttribute(seq++, "value", "false");
+        if (!current) builder.AddAttribute(seq++, "selected", true);
+        builder.AddContent(seq++, "No");
+        builder.CloseElement();
+
+        // "Yes"
+        builder.OpenElement(seq++, "option");
+        builder.AddAttribute(seq++, "value", "true");
+        if (current) builder.AddAttribute(seq++, "selected", true);
+        builder.AddContent(seq++, "Yes");
+        builder.CloseElement();
+
+        builder.CloseElement(); // select
+    };
 
 
+
+
+    // Treat all bool? as false unless checked.
+    // Run this when you open the modal and right before saving.
+    private static readonly PropertyInfo[] _ohNoProps =
+        typeof(OhNoEventDto).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+    private void DefaultNullBoolsToFalse()
+    {
+        foreach (var p in _ohNoProps)
+        {
+            if (p.PropertyType == typeof(bool?) && p.CanWrite)
+            {
+                if ((bool?)p.GetValue(_model) is null)
+                    p.SetValue(_model, false);
+            }
+        }
+    }
+
+    private async Task SaveOhNoEvent()
+    {
+        DefaultNullBoolsToFalse();
+
+        _model.PetId = pet.Id;
+        await Api.AddOhNoEventAsync(_model);
+
+
+
+        isAddOhNoOpen = false;
+    }
+
+    private async Task GetOhNoEventsById()
+
+    {
+        OhNoEvents = await Api.GetOhNoEventsById(Id);
+    }
+
+    private Task OnTypeChanged(OhNoEventType newType)
+    {
+        _model.Type = newType;
+
+        // Clear answers that don't apply (bool? -> false, others -> null)
+        ClearAllTypeSpecificFieldsToFalse();
+
+        return Task.CompletedTask;
+    }
+
+    // When switching types, reset type-specific answers.
+    // bool? fields are set to false (so they behave like "unchecked").
+    private void ClearAllTypeSpecificFieldsToFalse()
+    {
+        // Seizure bools
+        _model.SeizureWasGeneralized = false;
+        _model.SeizureLossOfConsciousness = false;
+        _model.SeizureUrination = false;
+        _model.SeizureIncontinentBM = false;
+        _model.SeizureClusterToday = false;
+
+        // Bleeding bools
+        _model.BleedingIsActive = false;
+        _model.BleedingOnBloodThinnerMedication = false;
+
+        // GI bools
+        _model.GiVomiting = false;
+        _model.GiDiarrhea = false;
+        _model.GiBloodInVomit = false;
+        _model.GiBloodInStool = false;
+        _model.GiForeignBodySuspected = false;
+
+        // Cardiac bools
+        _model.CardiacKnownHeartDisease = false;
+
+        // Resp bools
+        _model.RespLaboredBreathing = false;
+        _model.RespOpenMouthBreathing = false;
+        _model.RespCoughing = false;
+
+        // Trauma bools
+        _model.TraumaLossOfConsciousness = false;
+        _model.TraumaLimping = false;
+        _model.TraumaBleedingPresent = false;
+
+        // Ingestion bools
+        _model.IngestionVomitedAfter = false;
+        _model.IngestionPoisonControlContacted = false;
+
+        // Urinary bools
+        _model.UrinaryStraining = false;
+        _model.UrinaryFrequentSmallAmounts = false;
+        _model.UrinaryBloodInUrine = false;
+
+        // Pain bools
+        _model.PainSuddenOnset = false;
+        _model.PainNonWeightBearing = false;
+        _model.PainCryingOut = false;
+
+        // Behavior bools
+        _model.BehaviorSuddenAggression = false;
+        _model.BehaviorRestlessOrPacing = false;
+        _model.BehaviorDisorientation = false;
+        _model.BehaviorHidingOrWithdrawn = false;
+
+        // Medication bools
+        _model.MedMissedDose = false;
+        _model.MedExtraDose = false;
+    }
+
+
+    // Checkbox renderer for bool? fields: null -> unchecked, checked -> true, unchecked -> false
+    private RenderFragment BoolCheckbox(Func<bool?> get, Action<bool?> set) => builder =>
+    {
+        var seq = 0;
+
+        builder.OpenComponent<InputCheckbox>(seq++);
+        builder.AddAttribute(seq++, "class", "form-check-input");
+        builder.AddAttribute(seq++, "Value", get() ?? false);
+        builder.AddAttribute(seq++, "ValueChanged",
+            EventCallback.Factory.Create<bool>(this, v => set(v)));
+        builder.CloseComponent();
+    };
+
+    private void OpenPdfPreview(int docId)
+    {
+        pdfPreviewUrl = $"https://localhost:60174/api/documents/{docId}/preview";
+    }
+
+    private void ClosePdfPreview()
+    {
+        pdfPreviewUrl = null;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -284,14 +1111,22 @@
         try
         {
             isLoading = true;
-
+          
             var petTask = Api.GetPetById(Id);
             var medsTask = Api.GetMedsById(Id);
-
+            var petdocs = Api.GetPetDocumentsAsync(Id);
+            var ohnoEvents = Api.GetOhNoEventsById(Id);
             await Task.WhenAll(petTask, medsTask);
 
+            OhNoEvents = await ohnoEvents;
             pet = await petTask;
             meds = await medsTask;
+            petDocuments = await petdocs;
+            vetTrips = await Api.GetVetTripsByPet(Id);
+            docsandVetTrips = petDocuments
+                .Where(d => d.VetTripId.HasValue)
+                .GroupBy(d => d.VetTripId!.Value)
+                .ToDictionary(g => g.Key, g => g.ToList());
         }
         catch (Exception ex)
         {
@@ -300,8 +1135,8 @@
         finally
         {
             isLoading = false;
+            activeTab = "Medications";
             Console.WriteLine("Loaded");
-
         }
     }
 
@@ -317,7 +1152,6 @@
                 "#app > div > main > article > div > div > aside > div > div.image-wrapper > img"
             );
 
-
             if (colors != null)
             {
                 Console.WriteLine("Colors was not null");
@@ -328,7 +1162,6 @@
         }
         catch
         {
-            // fail silently, no theme applied
             Console.WriteLine("caught");
         }
     }
@@ -352,14 +1185,27 @@
             now.Year, now.Month, now.Day,
             now.Hour, now.Minute, 0,
             DateTimeKind.Local);
-    
-    isAddVetTripOpen = true;
+
+        isAddVetTripOpen = true;
     }
 
+    private void OpenOhNoEventModal()
+    {
+        // fresh model each time
+        _model = new OhNoEventDto
+        {
+            PetId = Id,
+            OccurredAt = DateTime.UtcNow
+        };
 
-    
+        DefaultNullBoolsToFalse();
+        isAddOhNoOpen = true;
+    }
 
-
+    private void ToggleDocuments()
+    {
+        showdocuments = !showdocuments;
+    }
 
     private async Task SaveMedication()
     {
@@ -379,7 +1225,6 @@
         newVetTrip.PetId = pet.Id;
         await Api.AddVetTripAsync(newVetTrip);
 
-        
         isAddVetTripOpen = false;
     }
 
@@ -393,10 +1238,8 @@
             if (updatedPet != null)
             {
                 pet = updatedPet;
-
                 await Task.Delay(50);
                 await ApplyPhotoTheme();
-
                 StateHasChanged();
             }
         }
@@ -439,8 +1282,8 @@
 
     public class ColorPalette
     {
-        public string Primary { get; set; }
-        public string PrimaryDark { get; set; }
-        public string PrimaryLight { get; set; }
+        public string Primary { get; set; } = "";
+        public string PrimaryDark { get; set; } = "";
+        public string PrimaryLight { get; set; } = "";
     }
 }

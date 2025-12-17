@@ -20,6 +20,179 @@ html, body {
 }
 
 /* Mar Page*/
+/* Container for the vet docs section */
+.vet-documents-section {
+    margin-top: 1.5rem;
+}
+
+/* Each vet trip card */
+.vet-trip-card {
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.vet-trip-card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.vet-trip-card h4 {
+    margin: 0.25rem 0 0.75rem;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.documents-list {
+    margin-top: 0.5rem;
+}
+
+/* Layout for file cards */
+.documents-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Individual file card */
+.document-card {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background: #fafafa;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* Thumbnail area */
+.document-thumb {
+    flex: 0 0 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.document-thumb-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 4px;
+    object-fit: cover;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Generic icon-style thumb */
+.document-thumb-icon {
+    width: 48px;
+    height: 64px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.pdf-icon {
+    background: #fbe9e7;
+    border-color: #f4511e;
+    color: #c62828;
+}
+
+.file-icon {
+    background: #e3f2fd;
+    border-color: #1e88e5;
+    color: #1565c0;
+}
+
+/* Info area */
+.document-info {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.document-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #333;
+    word-break: break-all;
+}
+
+.document-meta {
+    font-size: 0.8rem;
+    color: #777;
+    margin-bottom: 0.5rem;
+}
+
+/* Actions */
+.document-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.btn-doc {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 999px;
+    border: none;
+    text-decoration: none;
+    background: #1976d2;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.btn-doc.secondary {
+    background: #eeeeee;
+    color: #333;
+}
+
+/* PDF overlay */
+.pdf-preview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pdf-preview-dialog {
+    background: #ffffff;
+    border-radius: 8px;
+    width: min(1000px, 95vw);
+    padding: 0.5rem 0.75rem 0.75rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    position: relative;
+}
+
+.pdf-close-btn {
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    position: absolute;
+    top: 4px;
+    right: 8px;
+}
 
 .mar-page-container {
     max-width: 1100px;

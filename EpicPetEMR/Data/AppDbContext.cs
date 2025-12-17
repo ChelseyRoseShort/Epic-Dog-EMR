@@ -47,5 +47,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public DbSet<PetDocument> PetDocuments { get; set; } = null!;
 
+    public DbSet<OhNoEvent> OhNoEvents { get; set; } = null!;
+
 
 }

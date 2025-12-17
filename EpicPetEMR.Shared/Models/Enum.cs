@@ -18,4 +18,20 @@ public enum VetTripReason { Wellness = 0, Sick = 1, Surgery = 2}
 
 public enum DocumentType { VetTrip = 0, Assessment = 1}
 
+public enum OhNoEventType
+{
+    None = 0,
+    Seizure = 1,
+    Bleeding = 2,
+    GI = 3,
+    Cardiac = 4,
+    Respiratory = 5,
+    Trauma = 6,
+    AccidentalIngestion = 7,
+    Urinary = 8,
+    PainMobility = 9,
+    Behavior = 10,
+    Medication = 11,
+    Other = 12
+}
 

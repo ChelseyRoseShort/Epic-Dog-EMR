@@ -3,6 +3,7 @@
 @using EpicPetEMR.Shared.Models
 @using EpicPetEMR_Ui.ViewModels
 @using static EpicPetEMR_Ui.Services.MedicationScheduleService
+@using EpicPetEMR_Ui.Modals
 @inject PetApi Api
 @inject MedicationScheduleService Scheduler
 @inject NavigationManager Nav
@@ -15,8 +16,28 @@
         <option value="night" selected="@(_shift == "night")">Night (20:00–06:00)</option>
     </select>
 </div>
+ <AddVetTrip IsOpen="isAddDocumentOpen"
+                       Title="Upload Veterinary Trip Document"
+                        OnConfirm="SaveVetDocument"
+                       OnClose="() => isAddDocumentOpen = false">
+                       <InputFile OnChange="HandleFileSelected"
+                        multiple
+                       
+                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" 
+                        />
+                    
 
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Hospital</label>
+                    <input class="form-input"  placeholder="e.g. Healing Paws Veterinary Center " />
+                </div>
+
+            </div>
+            
+        </AddVetTrip>
 <div class="board">
+   
     <div class="grid" style="grid-template-columns:@GridTemplateColumns">
 
         <div class="cell header sticky-left corner">Patient</div>
@@ -44,12 +65,20 @@
 
                 // make sure meds isn’t null
                 meds ??= new List<MedScheduleItem>();
-
+                
                 // figure out what is still due vs completed
                 var dueMeds = meds.Where(m => !m.IsCompleted).ToList();
                 bool anyScheduled = meds.Count > 0;
                 bool allCompleted = anyScheduled && dueMeds.Count == 0;
                 var done = allCompleted;
+
+                List<VetTripDto> vetTrips = null;
+                var hasVetTrips = VetTripsByPetAndHour.TryGetValue(p.Pet.Id, out var vetPerHour)
+                && vetPerHour.TryGetValue(h, out vetTrips);
+
+                vetTrips ??= new List<VetTripDto>();
+                bool anyVetTrips = vetTrips.Count > 0;
+
 
                 <div class="cell task-cell @rowClass @(done ? "done" : null)"
                      data-patient-id="@p.Pet.Id"
@@ -70,7 +99,7 @@
                         else
                         {
                             <div class="task-wrap">
-                                <i class="fa-solid fa-prescription-bottle fa-2xl task-icon"></i>
+                                <i class="fa-solid fa-prescription-bottle fa-2xl task-icon" style="color:#483a73"></i>
                                 <div class="task-badge">
                                     <button class="button-plain" @onclick="() => GoToMAR(p.Pet.Id, h)">
                                         @foreach (var med in dueMeds)
@@ -83,6 +112,29 @@
                                 </div>
                             </div>
                         }
+                    }
+
+                    @if (anyVetTrips)
+                    {
+                        <div class="task-wrap vettrip-wrap">
+                            <button class="button-plain vettrip-button"
+                                    @onclick="() => GoToVetTrip(p.Pet.Id, h, vetTrips.FirstOrDefault()?.Id ?? 0)">
+                                <i class="fa-solid fa-hospital fa-xl vettrip-icon" style="color:#483a73"></i>
+
+                                @foreach (var trip in vetTrips)
+                                {
+                                    <div class="vettrip-pill">
+                                        <div class="task-badge">
+                                           <span class="vettrip-hospital">@trip.Hospital</span>
+                                        <span class="vettrip-visitdatetime">@trip.VisitDateTime</span>
+                                        <span class="vettrip-reason">@trip.Reason</span>
+                                        </div>
+
+                                     
+                                    </div>
+                                }
+                            </button>
+                        </div>
                     }
                 </div>
             }
@@ -155,11 +207,19 @@
     [Parameter] public int StartHour { get; set; } = 7;
     [Parameter] public int EndHour { get; set; } = 19;
 
+
+    // Gotta initialize the PetId and the VetTripId here:
+    private int? _selectedPetId;
+    private int? _selectedVetTripId;
+    // Initilize file
+    private List<IBrowserFile> _pendingFiles = new();
     private bool _loading = true;
     private string? _error;
     private List<PetWithMedsVm> _pets = new();
-
+   private bool isAddDocumentOpen = false;
     private Dictionary<int, Dictionary<int, List<MedScheduleItem>>> Tasks;
+    private Dictionary<int, Dictionary<int, List<VetTripDto>>> VetTripsByPetAndHour
+    = new();
     private List<MARHistoryDto> _marHistory = new();
 
     private List<int> Hours
@@ -191,9 +251,19 @@
         try
         {
             _pets = await Api.GetPetsAsync(includeMeds: true);
-
-            var today = DateOnly.FromDateTime(DateTime.Today);
+            var today = DateOnly.FromDateTime(DateTime.Now);
             _marHistory = await Api.GetMarHistoryForDateAsync(today);
+            var vetTrips = await Api.GetVetTripsTodayAsync();
+            VetTripsByPetAndHour = vetTrips
+       .GroupBy(v => v.PetId)
+       .ToDictionary(
+           g => g.Key,
+           g => g.GroupBy(v => v.VisitDateTime.Hour)
+                 .ToDictionary(
+                     hh => hh.Key,
+                     hh => hh.ToList()
+                 )
+       );
 
             Tasks = Scheduler.BuildBrainSchedule(_pets, StartHour, EndHour, _marHistory);
         }
@@ -231,5 +301,55 @@
     void GoToMAR(int petId, int hour)
     {
         Nav.NavigateTo($"/mar/task/{petId}/{hour}");
+    }
+    void GoToVetTrip(int petId, int hour, int tripId)
+    {
+        Console.WriteLine($"Navigating to vet trip for pet {petId} at hour {hour}, trip id {tripId}");
+        _selectedPetId = petId;
+        _selectedVetTripId = tripId;
+
+        // Go to the vet trip page
+        isAddDocumentOpen = true;
+    }
+
+    private async Task SaveVetDocument()
+    {
+        
+
+        foreach (var file in _pendingFiles)
+        {
+            var displayName = file.Name;
+            var docType = DocumentType.VetTrip;
+
+            await Api.UploadPetDocumentAsync(
+                petId: _selectedPetId.Value,
+                vetTripId: _selectedVetTripId.Value,
+                file: file,
+                name: displayName,
+                type: docType
+                
+            );
+        }
+
+        _pendingFiles.Clear();
+        isAddDocumentOpen = false;
+        await Load();
+
+
+      
+      
+    }
+
+    void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            Console.WriteLine($"Selected file: {file.Name}, size: {file.Size} bytes");
+
+
+        }
+
+        _pendingFiles = e.GetMultipleFiles().ToList();
+
     }
 }
