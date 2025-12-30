@@ -856,6 +856,8 @@ html, body {
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
+    margin-bottom: 1rem;
+    
 }
 
     .btn-primary:hover {
@@ -966,7 +968,7 @@ a, .btn-link {
 
 .btn-primary {
     color: var(--pet-primary-dark);
-   
+    margin-bottom: 1rem !important;
     border-color: #1861ac;
 }
 
@@ -1453,7 +1455,10 @@ code {
     flex-direction: column-reverse;
     gap: 10px;
 }
-
+button {
+    margin-bottom: 1rem!important;
+    margin-top:1rem !important;
+}
 /* nice fade-in animation */
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.95); }

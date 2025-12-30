@@ -13,6 +13,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
 
+  
+
     public DbSet<MARHistory> MARHistory { get; set; }
 
 
@@ -49,5 +51,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public DbSet<OhNoEvent> OhNoEvents { get; set; } = null!;
 
+    public DbSet<Avatar> PetFindings => Set<Avatar>();
 
 }

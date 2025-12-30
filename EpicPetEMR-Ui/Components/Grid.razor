@@ -1,0 +1,174 @@
+
+@using EpicPetEMR_Ui.Services
+@using EpicPetEMR.Shared.Models
+@using Microsoft.AspNetCore.Components.Forms
+@using EpicPetEMR_Ui.Modals
+@using EpicPetEMR_Ui.Components
+@using System.Reflection
+@using System.Globalization
+@using System.Text.RegularExpressions
+@inject PetApi Api
+@inject IJSRuntime JS
+
+
+<div class="avatar-grid grid" style="@GridStyle">
+@for (var i = 0; i < Total; i++)
+{
+    var idx = i;
+
+    AvatarDto? finding = mapKey is null
+        ? null
+        : listOfFindings.FirstOrDefault(f => f.MapKey == mapKey && f.CellIndex == idx);
+
+    var hasFinding = finding is not null;
+
+        var bg = hasFinding ? "display:block;" : (idx == SelectedIndex ? "display:block;" : "display:none;");
+       
+    var op = (hasFinding || idx == SelectedIndex) ? "1" : "0";
+   
+            <button style="opacity:@op;"
+                    type="button"
+                    class="cell avatarclicks"
+                    title="@($"Index: {idx} (r={idx / Cols}, c={idx % Cols})")"
+                    @onclick="() => CellClicked.InvokeAsync((idx, finding))">
+          
+
+            @if (hasFinding)
+            {
+                <span class="finding-icon @GetGroupIconClass(finding.Type)" style="color:#706496;"></span>
+            <div class="hover-finding"> 
+                    <div class="med-card">
+                        <div class="med-card-header">
+                            <h3><i class="fa-solid fa-staff-snake fa-lg" style="color: #6a4cc2;"></i>
+                            @finding.CreatedAtUtc.ToLocalTime().ToString("g")
+                    
+                            </h3>
+                            <span class="med-dose"></span>
+                        </div>
+                        <div class="med-card-body">
+                            <div class="detail-row">
+                                <span><strong>Type:</strong></span> <strong > @addspaces(@finding.Type.ToString())</strong>
+                            </div>
+                            <div class="detail-row">
+                                <span><strong>Assessment:</strong></span>
+                            </div>
+                           
+                            <div class="detail-row">@finding.Assessment</div>
+                            <p class="med-instructions">
+                                <span><strong>Note: </strong></span>
+                                <div>@finding.Note</div>
+                            </p>
+                        </div>
+                        <div class="med-card-footer">
+                     
+                        </div>
+                    </div>
+               
+                </div>
+            }
+
+        </button>
+
+
+}
+
+
+</div>
+@code {
+
+    [Parameter]public int Rows { get; set; } = 10;
+    [Parameter]public int Cols { get; set; } = 10;
+    [Parameter] public int SelectedIndex { get; set; }
+    [Parameter] public BodyMapKey? mapKey { get; set; }
+    [Parameter] public int CellSizePx { get; set; } = 50;
+    [Parameter] public IReadOnlyList<AvatarDto> listOfFindings { get; set; } = Array.Empty<AvatarDto>();
+    private int Total => Rows * Cols;
+    // Parent can access clicks
+    [Parameter] public EventCallback<(int Index, AvatarDto? Finding)> CellClicked { get; set; }
+
+
+    private static string addspaces(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return input;
+
+        return Regex.Replace(input,
+            @"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])",
+            " ");
+    }
+
+    private string GridStyle => $"display:grid;" +
+        $"grid-template-columns:repeat({Cols}, {CellSizePx}px);" +
+        $"grid-template-rows:repeat({Rows}, {CellSizePx}px);";
+
+    private string GetGroupIconClass(AvatarFinding type)
+    {
+        var v = (int)type;
+
+        if (v >= 0 && v < 100) return "fa-solid fa-bandage"; //skin
+        if (v == 103) return "fa-solid fa-lungs"; // airway
+        if (v >= 100 && v < 200 && v != 103) return "fa-solid fa-staff-snake"; //devices
+
+        return "ico-unknown";
+    }
+
+
+}
+
+<style>
+    .finding-icon{
+        border-radius: 20px;
+        border: 3px solid #B3A795 !important;
+        background-color: papayawhip;
+    }
+.hover-finding {
+    z-index:-10;
+    min-width:300px;
+    opacity:0;
+   
+    transition:0.3s ease-in-out;
+    position:absolute;
+    right:34px;
+    top:30px;
+   
+        -webkit-box-shadow: 5px 9px 15px 5px rgba(0,0,0,0.16);
+        box-shadow: 5px 9px 15px 5px rgba(0,0,0,0.16);
+}
+.profile-grid {
+z-index:5;
+}
+.avatar-grid {
+    height:480px;
+}
+.med-card-header{
+    background: lightgrey;
+    background-color: lightgrey;
+}
+.grid{
+        transform: rotateX(360deg);
+}
+.avatarclicks:hover .hover-finding {
+        opacity: 1;
+       
+        z-index: 600;
+}
+.avatar-buttons-container {
+z-index:20;
+}
+.avatarclicks:hover .avatar-buttons-container {
+z-index:2;
+}
+ .cell {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        border: 0;
+     
+        position:relative;
+        cursor: pointer;
+    }
+
+    .cell:hover {
+        outline: 1px solid #fff;
+        outline-offset: -1px;
+    }
+</style>

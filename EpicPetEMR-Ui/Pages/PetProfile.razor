@@ -3,10 +3,10 @@
 @using EpicPetEMR.Shared.Models
 @using Microsoft.AspNetCore.Components.Forms
 @using EpicPetEMR_Ui.Modals
-
+@using EpicPetEMR_Ui.Components
 @using System.Reflection
 @using System.Globalization
-
+@using System.Text.RegularExpressions
 @inject PetApi Api
 @inject IJSRuntime JS
 
@@ -37,7 +37,7 @@
 
                 @foreach (var t in Enum.GetValues<OhNoEventType>().Where(x => x != OhNoEventType.None))
                 {
-                    <option value="@t">@t</option>
+                    <option value="@t">@addspaces(t.ToString())</option>
                 }
                 
             </InputSelect>
@@ -497,6 +497,11 @@
     Oh No's
 </button>
 
+<button class="tab-button @(activeTab == "Avatar" ? "active-tab" : "")"
+        @onclick="@(() => SwitchToTab("Avatar"))">
+    Avatar
+</button>
+
 
         </div>
         </div>
@@ -529,6 +534,9 @@
                         </label>
                     </div>
                 </div>
+                <button class="btn-primary" @onclick="OpenAddMedModal">
+                    <i class="fa-solid fa-plus"></i> Add Medication
+                </button>
 
                 <!-- Add Vet Appointment Button -->
                 <button class="btn-primary" @onclick="OpenAddVetTripModal">
@@ -540,18 +548,19 @@
            
             <main class="profile-content">
                 <div class="section-header">
-                    <h2>Current Medications</h2>
-                    <button class="btn-primary" @onclick="OpenAddMedModal">
-                        <i class="fa-solid fa-plus"></i> Add Medication
-                    </button>
+                    <!-- <h2>Current Medications</h2> -->
+                   
                 </div>
  @if (activeTab == "Medications")
             {
-                
+
+                  
             
-                <div class="medication-grid">
+       
                     @if (meds.Any())
                     {
+                         <h2>Current Medications</h2>
+                        <div class="medication-grid">
                         @foreach (var med in meds)
                         {
                             <div class="med-card">
@@ -561,10 +570,10 @@
                                 </div>
                                 <div class="med-card-body">
                                     <div class="detail-row">
-                                        <span>Route:</span> <strong>@med.Route</strong>
+                                            <span>Route:</span> <strong>@addspaces(med.Route.ToString())</strong>
                                     </div>
                                     <div class="detail-row">
-                                        <span>Freq:</span> <strong>@med.Frequency</strong>
+                                            <span>Freq:</span> <strong> @addspaces(med.Frequency.ToString())</strong>
                                     </div>
                                     <p class="med-instructions">@med.Instructions</p>
                                 </div>
@@ -577,6 +586,7 @@
                                 </div>
                             </div>
                         }
+                        </div>
                     }
                     else
                     {
@@ -585,7 +595,7 @@
                             <p>No active medications.</p>
                         </div>
                     }
-                </div>
+              
             }
             else if (activeTab == "OhNos")
             {
@@ -609,7 +619,8 @@
                                 continue;
                             }
                             <li>
-                                <strong>@prop.Name:</strong> @prop.GetValue(ohno)
+                                            <strong>@addspaces(prop.Name.ToString()):</strong> @prop.GetValue(ohno)
+                                       
                             </li>
                            }
                         }
@@ -708,21 +719,64 @@
                 </section>
                 </div>
             }
+            else if (activeTab == "Avatar")   
+            {
+
+                <div>
+                <h2>@pet.Name's Avatar</h2>
+                <div class="avatar-buttons-container" style="position:relative;">
+                 <button type="button" class="btn-primary" @onclick="()=>ChangeAvatarPicture(AvatarView.Up)">Up</button>
+                            <button type="button" class="btn-primary" @onclick="()=>ChangeAvatarPicture(AvatarView.Down)">Down</button>
+                            <button type="button" class="btn-primary" @onclick="()=>ChangeAvatarPicture(AvatarView.Left)">Left</button>
+                            <button type="button" class="btn-primary" @onclick="()=>ChangeAvatarPicture(AvatarView.Right)">Right</button>
+                </div>
+                <div class="avatar-container">
+                <img class="avatar-image" src="@CurrentImage" />
+                           
+
+
+                
+                               <Grid Rows="20" Cols="30" CellSizePx="20" CellClicked="HandleAvatarClick"  SelectedIndex="_selectedIndex" listOfFindings="@findings" mapKey="@currentBodyMapKeyForGrid" /> 
+                            
+                </div>
+                </div>
+
+            }
+            <style>
+            .avatar-container {
+  position: relative;
+  width: 600px;   /* match your image display size */
+  height: 600px;  /* match your image display size */
+}
+
+.avatar-image{
+    top:-90px;
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 1;
+
+  /* important: let clicks pass through to the grid */
+  pointer-events: none;
+}
+
+/* targets the grid root div from the component */
+.avatar-container .grid{
+  position: absolute;
+  top:-20px;
+  
+  z-index: 2;
+        /* invisible but still clickable */
+  pointer-events: auto;
+}
+
+            </style>
             </main>
         </div>
 
-        <!-- All Documents Toggle -->
-        <section class="all-documents-section">
-            <button class="btn-primary" @onclick="ToggleDocuments">
-                @(showdocuments ? "Hide" : "Show") @pet.Name's Documents
-            </button>
-
-            @if (showdocuments)
-            {
-             
-            }
-        </section>
-
+       
         @if (!string.IsNullOrEmpty(pdfPreviewUrl))
         {
             <div class="pdf-preview-overlay">
@@ -764,7 +818,7 @@
                     <InputSelect @bind-Value="newMedication.DoseType" class="form-select">
                         @foreach (var value in Enum.GetValues<Dosages>())
                         {
-                            <option value="@value">@value</option>
+                            <option value="@value">@addspaces(value.ToString())</option>
                         }
                     </InputSelect>
                 </div>
@@ -774,7 +828,7 @@
                     <InputSelect @bind-Value="newMedication.Route" class="form-select">
                         @foreach (var value in Enum.GetValues<Routes>())
                         {
-                            <option value="@value">@value</option>
+                            <option value="@value">@addspaces(value.ToString())</option>
                         }
                     </InputSelect>
                 </div>
@@ -784,7 +838,7 @@
                     <InputSelect @bind-Value="newMedication.Frequency" class="form-select">
                         @foreach (var value in Enum.GetValues<Frequency>())
                         {
-                            <option value="@value">@value</option>
+                            <option value="@value">@addspaces(value.ToString())</option>
                         }
                     </InputSelect>
                 </div>
@@ -851,7 +905,7 @@
                     <InputSelect @bind-Value="newVetTrip.Reason" class="form-select">
                         @foreach (var value in Enum.GetValues<VetTripReason>())
                         {
-                            <option value="@value">@value</option>
+                            <option value="@value">@addspaces(value.ToString())</option>
                         }
                     </InputSelect>
                 </div>
@@ -893,6 +947,130 @@
         }
     }
 </div>
+<Form IsOpen="isAvatarFormOpen"
+                    Title="Add Wound/Lines/Devices"
+                    OnClose="() =>  {
+                        isAvatarFormOpen = false;
+                        _selectedIndex = -1;
+                    }"
+                    OnConfirm="SaveAvatar">
+                     <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>Avatar View</label>
+                            <InputSelect @bind-Value="selectedType" class="form-select">
+                              <option value="Wound">Wound</option>
+                              <option value="Lines/Devices">Lines/Devices</option>
+                              
+                            </InputSelect>
+                        </div>
+                        @* @foreach(var value in Enum.GetValues<AvatarFinding>()) *@
+        <div class="form-group full-width"> 
+
+   <InputSelect class="form-select" @bind-Value="newAvatarFinding.Type">
+
+       
+          @if (selectedType == "Lines/Devices" && newAvatarFinding.Type == AvatarFinding.SurgicalIncision)
+            {
+                    newAvatarFinding.Type = AvatarFinding.Dexcom;
+                }
+
+        @foreach(var value in Enum.GetValues<AvatarFinding>())
+        {
+            var num = (int)value;
+            if (selectedType == "Wound" && num >= 0 && num <= 11)
+            {
+            
+                <option value="@value">@addspaces(value.ToString())</option>
+            }
+            else if (selectedType == "Lines/Devices" && num >= 100 && num <= 199)
+            {
+                <option value="@value">@addspaces(value.ToString())</option>
+            }
+        }
+        </InputSelect>
+
+        </div>
+        <div class="form-group full-width">
+        <label>Note</label>
+        <textarea class="form-input"
+                  rows="2"
+                  @bind="newAvatarFinding.Note"></textarea>
+                 </div>
+        <div class="form-group full-width">
+        <label>Assessment</label>
+        <textarea class="form-input"
+                  rows="4"
+                  @bind="newAvatarFinding.Assessment"></textarea>
+        </div>
+                        
+                        
+                        
+                        
+                        </div>
+         </Form>
+                 
+
+<Form IsOpen="isOpenReassesmentForm"
+                    Title="Reassessment"
+                    OnClose="() =>  {
+                        isOpenReassesmentForm = false;
+                        _selectedIndex = -1;
+                    }"
+                    OnConfirm="UpdateAvatar">
+                     <div class="form-grid">
+        <div class="form-group full-width">
+        <label>Reassessment</label>
+        <textarea class="form-input"
+                  rows="4"
+                  @bind="updateAvatarFinding.Assessment"></textarea>
+        </div>  
+       @if (updateAvatarFinding is not null)
+{
+    <button type="button"
+            class="deleteavatarform"
+            @onclick="() => openAvatarDeleteConfirm(updateAvatarFinding.Id)">
+        Resolve Avatar Finding
+    </button>
+}
+        </div>
+         </Form>
+
+         @if (showAvatarDeleteConfirm)
+        {
+        
+             <div class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header warning">
+                <h4>Delete Finding</h4>
+            </div>
+
+            <EditForm Model="this" OnValidSubmit="DeleteAvatar">
+                <DataAnnotationsValidator />
+
+                <div class="modal-body">
+                    <p>
+                        Are you sure you want to remove
+                        <strong>@newAvatarFinding?.Type</strong>?
+                    </p>
+                    <small>This action cannot be undone.</small>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn-text"
+                            @onclick="() => showAvatarDeleteConfirm = false">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                            class="btn-danger">
+                        Yes, Delete
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+        }
 
 @code {
     [Parameter] public int Id { get; set; }
@@ -906,20 +1084,120 @@
     private bool _themeApplied = false;
     private PetDto? pet;
     private List<MedicationDto> meds = new();
+    private List<AvatarDto> Avatars = new();
     private MedicationDto newMedication = new();
     private MedicationDto? medToDelete;
+    private AvatarDto? avatarToDelete = new();
     private VetTripDto newVetTrip = new();
     private List<VetTripDto> vetTrips = new();
+    private List<AvatarDto> findings = new();
     private List<PetDocumentDto> petDocuments = new();
     private List<OhNoEventDto> OhNoEvents = new();
+    private CreateAvatarRequest newAvatarFinding = new();
+    private UpdateAvatarRequest updateAvatarFinding = new UpdateAvatarRequest();
     private bool showdocuments = false;
     private bool isLoading = true;
     private bool isAddMedOpen = false;
+    private bool isOpenReassesmentForm = false;
     private bool isAddVetTripOpen = false;
+    private bool isAvatarFormOpen = false;
     private bool showDeleteConfirm = false;
+    private bool showAvatarDeleteConfirm = false;
     private string _minDateTimeLocal => DateTime.Now.ToString("yyyy-MM-ddTHH:mm");
     private Dictionary<int, List<PetDocumentDto>> docsandVetTrips = new();
+    private int clickedGrid = 0;
+    private int avatarIdToDelete = 0;
+    private IReadOnlyDictionary<AvatarView, string> _activeImages = avatarImageUrls;
+    private int _selectedIndex   = -1;
+    // String for selecting Type on Avatar
+    private string selectedType = "Wound";
 
+    private int _avatarIndex, _avatarRow, _avatarCol;
+
+    // public enum currentBodyMapKey => avatarMap[currentAvatarView];
+    public BodyMapKey? currentBodyMapKey => avatarMap.TryGetValue(currentAvatarView, out var key) ? key : null;
+    public BodyMapKey? currentBodyMapKeyForGrid => avatarMap.TryGetValue(currentAvatarView, out var key) ? key : null;
+    private void HandleAvatarClick((int index, AvatarDto? Finding) args)
+    {
+        if (args.Finding is not null )
+        {
+            updateAvatarFinding.Assessment = DateTime.Now.ToString("g");
+            updateAvatarFinding.Id = args.Finding.Id;
+            isOpenReassesmentForm = true;
+            return;
+        }
+        else {
+            _selectedIndex = args.index;
+            _avatarIndex = args.index;
+            _avatarRow = args.index / 10;
+            _avatarCol = args.index % 10;
+
+            Console.WriteLine($"Clicked on index {_avatarIndex} at row {_avatarRow}, col {_avatarCol}");
+            clickedGrid = args.index;
+
+
+
+            newAvatarFinding = new CreateAvatarRequest
+            {
+                PlacedAtUtc = DateTime.UtcNow,
+                IsActive = true,
+                MapKey = currentBodyMapKey,
+                GridRows = _avatarRow,
+                GridCols = _avatarCol,
+                CellIndex = args.index
+            };
+            Console.WriteLine("Avatar Form Open");
+            isAvatarFormOpen = true;
+        }
+
+    }
+
+
+    private enum AvatarView
+    {
+        Up,
+        Down,
+        Center,
+        Left,
+        Right
+    }
+    private AvatarView currentAvatarView = AvatarView.Center;
+
+    private string CurrentImage => _activeImages.TryGetValue(currentAvatarView, out var url) ? url : _activeImages[AvatarView.Center];
+    private static readonly Dictionary<AvatarView, string> avatarImageUrls = new()
+    {
+        { AvatarView.Up, $"https://localhost:60174/avatarpics/top-down.png" },
+        { AvatarView.Down, "https://localhost:60174/avatarpics/underbelly.png" },
+        { AvatarView.Center, "https://localhost:60174/avatarpics/face-view.png" },
+        { AvatarView.Left, "https://localhost:60174/avatarpics/left-side.png" },
+        { AvatarView.Right, "https://localhost:60174/avatarpics/right-side.png" }
+    };
+
+    private static readonly Dictionary<AvatarView, string> avatarCatImageUrls = new()
+    {
+        { AvatarView.Up, $"https://localhost:60174/avatarpics/top-down-cat.png" },
+        { AvatarView.Down, "https://localhost:60174/avatarpics/underbelly-cat.png" },
+        { AvatarView.Center, "https://localhost:60174/avatarpics/face-view-cat.png" },
+        { AvatarView.Left, "https://localhost:60174/avatarpics/left-side-cat.png" },
+        { AvatarView.Right, "https://localhost:60174/avatarpics/right-side-cat.png" }
+    };
+
+    Dictionary<AvatarView, BodyMapKey> avatarMap = new () 
+    {
+        [AvatarView.Center] = BodyMapKey.Head,
+        [AvatarView.Left] = BodyMapKey.Left,
+        [AvatarView.Right] = BodyMapKey.Right,
+        [AvatarView.Up] = BodyMapKey.TopView,
+        [AvatarView.Down] = BodyMapKey.BellyView
+    };
+    private static string addspaces(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return input;
+
+        return Regex.Replace(input,
+            @"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])",
+            " ");
+    }
     private bool isAddOhNoOpen = false;
 
     private OhNoEventDto _model = new()
@@ -960,7 +1238,13 @@
         builder.CloseElement(); // select
     };
 
-
+    private void openAvatarDeleteConfirm(int findingId)
+    {
+        Console.WriteLine(findingId);
+        Console.WriteLine(updateAvatarFinding.Id);
+        avatarIdToDelete = updateAvatarFinding.Id;
+        showAvatarDeleteConfirm = true;
+    }
 
 
     // Treat all bool? as false unless checked.
@@ -978,6 +1262,17 @@
                     p.SetValue(_model, false);
             }
         }
+    }
+
+
+    private async Task SaveAvatar()
+    {
+
+        await Api.AddAvatarAsync(pet.Id, newAvatarFinding);
+
+        isAvatarFormOpen = false;
+
+        _selectedIndex = -1;
     }
 
     private async Task SaveOhNoEvent()
@@ -1111,14 +1406,16 @@
         try
         {
             isLoading = true;
-          
+
             var petTask = Api.GetPetById(Id);
             var medsTask = Api.GetMedsById(Id);
             var petdocs = Api.GetPetDocumentsAsync(Id);
             var ohnoEvents = Api.GetOhNoEventsById(Id);
+            var findingsCall = Api.GetAvatarById(Id);
             await Task.WhenAll(petTask, medsTask);
 
             OhNoEvents = await ohnoEvents;
+            findings = await findingsCall;
             pet = await petTask;
             meds = await medsTask;
             petDocuments = await petdocs;
@@ -1127,6 +1424,14 @@
                 .Where(d => d.VetTripId.HasValue)
                 .GroupBy(d => d.VetTripId!.Value)
                 .ToDictionary(g => g.Key, g => g.ToList());
+            if (pet.Species == "Dog")
+            {
+                _activeImages = avatarImageUrls;
+            }
+            else if (pet.Species == "Cat")
+            {
+                _activeImages = avatarCatImageUrls;
+            }
         }
         catch (Exception ex)
         {
@@ -1176,6 +1481,15 @@
             IsActive = true
         };
         isAddMedOpen = true;
+    }
+    private void OpenAvatarForm()
+    {
+        newAvatarFinding = new CreateAvatarRequest
+            {
+                PlacedAtUtc = DateTime.UtcNow,
+                IsActive = true
+            };
+        isAvatarFormOpen = true;
     }
 
     private void OpenAddVetTripModal()
@@ -1228,6 +1542,16 @@
         isAddVetTripOpen = false;
     }
 
+    private async Task UpdateAvatar()
+    {
+        Console.WriteLine(updateAvatarFinding.Assessment);
+        Console.WriteLine("Updating avatar");
+        isOpenReassesmentForm = false;
+        updateAvatarFinding.IsActive = true;
+        await Api.UpdateAvatarAsync(pet.Id, updateAvatarFinding);
+        
+    }
+
     private async Task UploadPhoto(InputFileChangeEventArgs e)
     {
         if (pet == null) return;
@@ -1255,6 +1579,12 @@
         showDeleteConfirm = true;
     }
 
+    private void ConfirmAvatarDelete(AvatarDto a)
+    {
+        avatarToDelete = a;
+        showAvatarDeleteConfirm = true;
+    }
+
     private async Task DeleteMed()
     {
         if (medToDelete != null)
@@ -1265,6 +1595,17 @@
 
         showDeleteConfirm = false;
         medToDelete = null;
+    }
+
+    private async Task DeleteAvatar()
+    {
+        if (avatarToDelete != null)
+        {
+            await Api.DeleteAvatar(pet.Id, updateAvatarFinding.Id);
+            Avatars = await Api.GetAvatarById(Id);
+        }
+        showAvatarDeleteConfirm = false;
+        avatarToDelete = null;
     }
 
     private string CalculatePetAge(DateOnly? dob)
@@ -1285,5 +1626,21 @@
         public string Primary { get; set; } = "";
         public string PrimaryDark { get; set; } = "";
         public string PrimaryLight { get; set; } = "";
+    }
+
+   
+
+    private void ChangeAvatarPicture(AvatarView view)
+    {
+        if (view == currentAvatarView)
+        {
+            currentAvatarView = AvatarView.Center;
+            Console.WriteLine("Current View is " + currentAvatarView);
+            return;
+        }
+        else {
+            currentAvatarView = view;
+        }
+     
     }
 }

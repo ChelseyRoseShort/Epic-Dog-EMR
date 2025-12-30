@@ -63,6 +63,11 @@ public sealed class PetApi
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task UpdateAvatarAsync(int petId, UpdateAvatarRequest finding, CancellationToken ct = default)
+    {
+        var response = await _http.PutAsJsonAsync($"api/pets/{petId}/avatars", finding, ct);
+        response.EnsureSuccessStatusCode();
+    }
     public async Task DeletePet(PetDto pet, CancellationToken ct = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Delete, "deletepet")
@@ -80,6 +85,16 @@ public sealed class PetApi
         {
             Content = JsonContent.Create(med)
         };
+
+        var response = await _http.SendAsync(request, ct);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task DeleteAvatar(int PetId, int Id, CancellationToken ct = default)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"api/pets/{PetId}/avatars/{Id}");
+
+      
 
         var response = await _http.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
@@ -167,6 +182,9 @@ public sealed class PetApi
     public async Task<List<OhNoEventDto>> GetOhNoEventsById(int petId, CancellationToken ct = default)
          => await _http.GetFromJsonAsync<List<OhNoEventDto>>($"api/{petId}/ohnoevents", ct);
 
+    public async Task<List<AvatarDto>> GetAvatarById(int petId, CancellationToken ct = default)
+         => await _http.GetFromJsonAsync<List<AvatarDto>>($"api/pets/{petId}/avatars", ct);
+
     public async Task<MedicationDto> AddMedAsync(MedicationDto newMedication)
     {
         var response = await _http.PostAsJsonAsync("addmedication", newMedication);
@@ -180,6 +198,22 @@ public sealed class PetApi
 
         return await response.Content.ReadFromJsonAsync<MedicationDto>();
     }
+
+public async Task<AvatarDto?> AddAvatarAsync(int petId, CreateAvatarRequest req)
+{
+    var url = $"api/pets/{petId}/avatars";
+
+    var response = await _http.PostAsJsonAsync(url, req);
+
+    if (!response.IsSuccessStatusCode)
+    {
+        var error = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"Error adding avatar finding: {error}");
+        return null;
+    }
+
+    return await response.Content.ReadFromJsonAsync<AvatarDto>();
+}
 
     public async Task<OhNoEventDto> AddOhNoEventAsync(OhNoEventDto _model)
     {
