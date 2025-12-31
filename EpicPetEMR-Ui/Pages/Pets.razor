@@ -77,16 +77,13 @@ else
                            @bind-Value="petDraftBeingEdited.DateOfBirth" />
             </td>
 
-            <td>
-                @petDraftBeingEdited.Family?.Name
-            </td>
-
-            <td style="
-                height: 55px;
-                position: relative;
+          
+                <td class="edit-buttons-container" style="
+              
+              
                 display: flex;
-                left: -63px;
-                width: 234px;
+             
+             
                 justify-content: center;
                 align-items: center;
                 gap: 0px;
@@ -101,9 +98,12 @@ else
                         class="btn btn-outline-danger btn-sm"
                         style="position: relative; right: -9px;"
                         @onclick="() => ConfirmDeletePet(currentPet)">
-                    Delete Pet
+                    Delete
                 </button>
             </td>
+           
+
+          
         </tr>
                             @if (deleteconfirm)
                             {
@@ -124,7 +124,7 @@ else
     {
         <!-- View row -->
         <tr>
-            <td>
+            <td class="view-row">
                 <a href="petprofile/@currentPet.Id">@currentPet.Name</a>
             </td>
 
@@ -246,6 +246,8 @@ else
             {
                 <tr> 
           <td>
+              <div class="pet-page-pet">
+
 @{
     var pic = currentPet.ProfilePic ?? "";
 
@@ -264,6 +266,7 @@ else
 
 
     <a href="petprofile/@currentPet.Id">@currentPet.Name</a>
+    </div>
 </td>
 
 
@@ -273,7 +276,7 @@ else
                     <td>@(currentPet.Weight is null ? "-" : $"{currentPet.Weight} {currentPet.WeightUnit}")</td>
                    
                     <td>@(currentPet.DateOfBirth?.ToString("MM/dd/yyyy") ?? "")</td>
-                    <td>@currentPet.Family?.Name</td>
+                
                     <td>
                         <button class="btn btn-primary btn-sm" @onclick="() => EnableEdit(currentPet)">Edit</button>
                     </td>

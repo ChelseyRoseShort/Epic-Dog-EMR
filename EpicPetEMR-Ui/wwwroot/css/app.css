@@ -1147,7 +1147,60 @@ code {
     flex: 0 0 auto;
     background: #3a86ff;
 }
+.tab-button {
+    background-color: var(--pet-primary-light);
+    color: var(--pet-primary-dark);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+.finding-icon {
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    display: flex !important;
+    width: 52px !important;
+    height: 25px;
+    border-radius: 45px;
+    border: 3px solid #B3A795 !important;
+    background-color: papayawhip;
+}
+.avatarclicks {
+    background:none !important;
+}
+.edit-buttons-container button {
+    margin-top:0 !important;
+}
+.pet-page-pet {
+    display:flex;
+    flex-direction:row;
+}
 
+    .pet-page-pet a {
+        background-color: var(--pet-primary-light);
+        color: var(--pet-primary-dark);
+        border: none;
+        padding: 1px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        max-width: 100px;
+        display: flex;
+        margin-top: 0.5rem;
+        margin-left: 4px;
+        text-align: center;
+        font-weight: 500;
+        height: 30px;
+        font-size: 12px;
+        justify-content: center;
+        align-items: center;
+    }
+.active-tab {
+    background-color: var(--pet-primary-dark);
+    color: var(--pet-primary-light);
+}
 .button-plain {
     background: none;
     border: none;

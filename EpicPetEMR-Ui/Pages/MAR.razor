@@ -207,13 +207,24 @@ else
                 <p class="mar-med-details">
                    @allmeds.FirstOrDefault(x => x.Id == history.MedId)?.Name
                 </p>
-
-                <div class="mar-med-meta">
+                @if (@history.Reason is not null)
+                {
+                     <div class="mar-med-meta">
+                    <span class="mar-chip mar-chip-primary">
+                       
+                        Held at: @history.TimeRecorded - Reason: @history.Reason
+                    </span>
+                </div>
+                }
+                else {
+                      <div class="mar-med-meta">
                     <span class="mar-chip mar-chip-primary">
                        
                         @history.TimeRecorded
                     </span>
                 </div>
+                }
+              
             </div>
         }
     </div>

@@ -513,14 +513,14 @@
                     <div class="image-wrapper">
                         @if (!string.IsNullOrEmpty(pet.ProfilePic))
                         {
-                            <img crossorigin="anonymous"
+                            <img 
                                  class="pet-profile-image"
                                  src="@($"https://localhost:60174{pet.ProfilePic}")"
                                  alt="@pet.Name" />
                         }
                         else
                         {
-                            <img crossorigin="anonymous"
+                            <img 
                                  class="pet-profile-image"
                                  src="/images/default-pet.jpg"
                                  alt="Default Pet Profile" />
@@ -1273,6 +1273,9 @@
         isAvatarFormOpen = false;
 
         _selectedIndex = -1;
+        Console.WriteLine("REload data");
+        await ReloadAvatar();
+      
     }
 
     private async Task SaveOhNoEvent()
@@ -1400,7 +1403,11 @@
             _themeApplied = true;
         }
     }
-
+    private async Task ReloadAvatar()
+    {
+          var findingsCall = Api.GetAvatarById(Id);
+          findings = await findingsCall;
+    }
     private async Task LoadData()
     {
         try
@@ -1549,6 +1556,7 @@
         isOpenReassesmentForm = false;
         updateAvatarFinding.IsActive = true;
         await Api.UpdateAvatarAsync(pet.Id, updateAvatarFinding);
+        await ReloadAvatar();
         
     }
 
@@ -1605,7 +1613,9 @@
             Avatars = await Api.GetAvatarById(Id);
         }
         showAvatarDeleteConfirm = false;
-        avatarToDelete = null;
+      
+        isOpenReassesmentForm = false;
+        await ReloadAvatar();
     }
 
     private string CalculatePetAge(DateOnly? dob)
