@@ -68,7 +68,7 @@ namespace EpicPetEMR.Api.Controllers
 
             var resultDto = entity.ToDto();
 
-            // So PetApi.AddVetTripAsync can read the created DTO
+  
             return CreatedAtAction(nameof(Get), new { id = resultDto.Id }, resultDto);
         }
 

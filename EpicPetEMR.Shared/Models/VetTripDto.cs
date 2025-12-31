@@ -12,10 +12,10 @@ namespace EpicPetEMR.Shared.Models
 
         public string Vet { get; set; } = string.Empty;
 
-        // When the visit occurred
+      
         public DateTime VisitDateTime { get; set; }
 
-        // This references the shared enum you already created
+
         public VetTripReason Reason { get; set; }
     }
 }

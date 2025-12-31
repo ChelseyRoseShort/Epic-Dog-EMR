@@ -10,10 +10,10 @@ public class Allergy
     public Pet Pet { get; set; } = default!;
 
     [Required, MaxLength(160)]
-    public string Substance { get; set; } = default!; // e.g., Chicken, Bee stings
+    public string Substance { get; set; } = default!; 
 
     [MaxLength(160)]
-    public string? Reaction { get; set; }             // e.g., hives, GI upset
+    public string? Reaction { get; set; }      
 
     public bool Severe { get; set; } = false;
 }

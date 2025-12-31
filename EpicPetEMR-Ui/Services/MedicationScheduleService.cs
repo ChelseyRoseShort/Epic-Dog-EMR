@@ -50,19 +50,19 @@ public sealed class MedicationScheduleService
 
                 if (!med.IsActive)
                 {
-                    Console.WriteLine("❌ Skipped: Not Active");
+                   
                     continue;
                 }
 
                 if (IsPrn(med.Frequency))
                 {
-                    Console.WriteLine("❌ Skipped: PRN Medication");
+             
                     continue;
                 }
 
                 if (med.StartDate is null || med.StartTime is null)
                 {
-                    Console.WriteLine("❌ Skipped: Missing StartDate or StartTime");
+              
                     continue;
                 }
 
@@ -89,11 +89,11 @@ public sealed class MedicationScheduleService
 
                     if (!IsHourInRange(hour, startHour, endHour))
                     {
-                        Console.WriteLine($"❌ Dose {dose} is OUTSIDE window.");
+           
                         continue;
                     }
 
-                    Console.WriteLine($"✔ Dose {dose} is INSIDE window.");
+
 
                     if (!tasks.TryGetValue(petId, out var perHour))
                     {
@@ -115,13 +115,13 @@ public sealed class MedicationScheduleService
                     });
 
                     Console.WriteLine(
-                        $"Added → PET {petId}, HOUR {hour}, MED {med.Name}, IsCompleted={isCompleted}"
+                        $"Added PET {petId}, HOUR {hour}, MED {med.Name}, IsCompleted={isCompleted}"
                     );
                 }
             }
         }
 
-        Console.WriteLine("\n=== FINAL TASK STRUCTURE ===");
+
         foreach (var petEntry in tasks)
         {
             Console.WriteLine($"Pet {petEntry.Key}:");
@@ -137,13 +137,11 @@ public sealed class MedicationScheduleService
             }
         }
 
-        Console.WriteLine("=== END BRAIN SCHEDULE ===\n");
+ 
 
         return tasks;
     }
 
-
-    // --- FIXED DOSE GENERATION (handles overnight windows) ---
     public List<DateTime> GenerateDoseTimes(
      DateOnly startDate,
      TimeOnly startTime,
@@ -166,7 +164,7 @@ public sealed class MedicationScheduleService
 
         Console.WriteLine($"Window: {windowStart} → {windowEnd}");
 
-        // Move current dose time forward until it is near today's window
+       
         var current = firstDose;
         while (current < windowStart.AddHours(-intervalHours))
         {
@@ -175,7 +173,6 @@ public sealed class MedicationScheduleService
 
         Console.WriteLine($"Aligned Current Dose Start: {current}");
 
-        // Generate doses for today + tomorrow maximum
         var lastPossible = windowEnd.AddHours(intervalHours);
 
         while (current <= lastPossible)
@@ -184,12 +181,12 @@ public sealed class MedicationScheduleService
 
             if (current >= windowStart && current <= windowEnd)
             {
-                Console.WriteLine($"    ✔ Inside window");
+            
                 results.Add(current);
             }
             else
             {
-                Console.WriteLine($"    ❌ Outside window");
+                Console.WriteLine($" Outside window");
             }
 
             current = current.AddHours(intervalHours);

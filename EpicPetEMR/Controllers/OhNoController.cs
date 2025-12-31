@@ -64,11 +64,11 @@ public class OhNoEventsController : ControllerBase
             return NotFound($"Pet {petId} not found.");
         }
 
-        // Trust the route as the source of truth for PetId
+  
         dto.PetId = petId;
 
         var entity = dto.ToEntity();
-        entity.Id = 0; // make sure EF treats it as new
+        entity.Id = 0; 
 
         _db.OhNoEvents.Add(entity);
         await _db.SaveChangesAsync();
@@ -87,7 +87,7 @@ public class OhNoEventsController : ControllerBase
     {
         if (id != dto.Id && dto.Id != 0)
         {
-            // If dto.Id is set and doesn't match route, reject it
+         
             return BadRequest("ID in route and body do not match.");
         }
 
@@ -98,8 +98,6 @@ public class OhNoEventsController : ControllerBase
         {
             return NotFound();
         }
-
-        // Keep PetId from route as the source of truth
         dto.Id = id;
         dto.PetId = petId;
 

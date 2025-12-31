@@ -10,7 +10,7 @@ public sealed class PetDto
     public string? Species { get; set; }
     public string? Sex { get; set; }
     public decimal? Weight { get; set; }
-    public string? WeightUnit { get; set; }  // Keep this as string for serialization
+    public string? WeightUnit { get; set; } 
 
     public DateOnly? DateOfBirth { get; set; }
     public int? FamilyId { get; set; }

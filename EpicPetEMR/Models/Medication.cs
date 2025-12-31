@@ -31,6 +31,6 @@ public class Medication
 
     public DateOnly? EndDate { get; set; }
 
-    // UI IsActive can be overridden or you can compute it here
+    
     public bool IsActive { get; set; }
 }

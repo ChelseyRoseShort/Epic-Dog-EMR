@@ -83,7 +83,7 @@
     [Parameter] public int CellSizePx { get; set; } = 50;
     [Parameter] public IReadOnlyList<AvatarDto> listOfFindings { get; set; } = Array.Empty<AvatarDto>();
     private int Total => Rows * Cols;
-    // Parent can access clicks
+  
     [Parameter] public EventCallback<(int Index, AvatarDto? Finding)> CellClicked { get; set; }
 
 

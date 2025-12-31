@@ -1,7 +1,7 @@
 using EpicPetEMR.Shared.Models;
 using EpicPetEMR_Ui.ViewModels;
 using EpicPetEMR_Ui.ViewModels;
-using Microsoft.AspNetCore.Components.Forms;   // <- from Shared
+using Microsoft.AspNetCore.Components.Forms;   
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -135,7 +135,7 @@ public sealed class PetApi
 }
 
 
-    // add photo function here
+
     public async Task<PetDto?> UploadPetPhoto(int Id, IBrowserFile file)
     {
         using var content = new MultipartFormDataContent();
@@ -235,7 +235,7 @@ public async Task<AvatarDto?> AddAvatarAsync(int petId, CreateAvatarRequest req)
             MedId = x.MedId,
             Hour = x.Hour,
             Action = MedicationAction.Given,
-            TimeRecorded = DateTime.UtcNow // not required, API overwrites, but nice for completeness
+            TimeRecorded = DateTime.UtcNow 
         }).ToList();
 
         await _http.PostAsJsonAsync("api/mar/given", payload);

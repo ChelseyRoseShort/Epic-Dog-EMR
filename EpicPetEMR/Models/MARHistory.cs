@@ -10,8 +10,8 @@ namespace EpicPetEMR.Api.Models;
             public int MedId { get; set; }
             public int Hour { get; set; }
 
-            public MedicationAction Action { get; set; }   // NEW ✔ "Given" or "Held"
-            public string? Reason { get; set; }            // optional "Held reason"
+            public MedicationAction Action { get; set; }   
+            public string? Reason { get; set; }           
 
             public DateTime TimeRecorded { get; set; }
         }

@@ -150,12 +150,12 @@ namespace EpicPetEMR.Controllers
                 return BadRequest("Invalid date format. Use yyyy-MM-dd.");
             }
 
-            // Convert DateOnly to a DateTime just to use the .Date property
+         
             var targetDate = day.ToDateTime(TimeOnly.MinValue).Date;
 
             var query = _db.MARHistory.AsQueryable();
 
-            // Match on the calendar date stored in the DB
+      
             query = query.Where(x => x.TimeRecorded.Date == targetDate);
 
             if (petId.HasValue)

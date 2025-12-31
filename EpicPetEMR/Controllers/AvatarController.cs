@@ -29,7 +29,7 @@ public class AvatarController : ControllerBase
         return CreatedAtAction(nameof(GetAvatar), new { petId, id = avatar.Id }, avatar.ToDto());
     }
 
-    // list for pet
+ 
     [HttpGet]
     public async Task<ActionResult<List<AvatarDto>>> GetAvatarsForPet(int petId)
     {
@@ -56,28 +56,28 @@ public class AvatarController : ControllerBase
 [HttpPut]
 public async Task<ActionResult<AvatarDto>> UpdateAvatar(int petId, [FromBody] UpdateAvatarRequest req)
 {
-    // 1) Look up the existing Avatar row in the database for this pet + this finding Id
+ 
     var avatar = await _db.PetFindings
         .FirstOrDefaultAsync(a => a.PetId == petId && a.Id == req.Id);
 
-    // If we didn't find it, return a 404
+
     if (avatar is null)
         return NotFound();
 
-    // 2) Append the new Assessment text instead of overwriting
+   
     var newText = req.Assessment?.Trim();
 
-    // Only do anything if the user actually typed something
+
     if (!string.IsNullOrWhiteSpace(newText))
     {
-        // If the database had nothing yet, start it with the new text
+     
         if (string.IsNullOrWhiteSpace(avatar.Assessment))
         {
             avatar.Assessment = newText;
         }
         else
         {
-            // Otherwise add it on a new line (but avoid duplicates)
+ 
             if (!avatar.Assessment.Contains(newText))
                 avatar.Assessment = $"{avatar.Assessment.TrimEnd()}\n{newText}";
         }
@@ -85,15 +85,13 @@ public async Task<ActionResult<AvatarDto>> UpdateAvatar(int petId, [FromBody] Up
       
             avatar.IsActive = true;
         
-        // 3) Update the rest of the fields (Type, IsActive, MapKey, etc.)
-        // IMPORTANT: Your ApplyUpdate method must NOT overwrite Assessment,
-        // or it will undo the append logic above.
+     
         avatar.ApplyUpdate(req);
 
-    // 4) Save the changes
+
     await _db.SaveChangesAsync();
 
-    // 5) Send back the updated record
+
     return Ok(avatar.ToDto());
 }
 

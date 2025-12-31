@@ -46,7 +46,7 @@ public enum BodyMapKey
 
 public enum AvatarFinding
 {
-    // Skin / wounds
+  
     SurgicalIncision = 0,
     OpenWound = 1,
     Lump = 2,
@@ -60,11 +60,11 @@ public enum AvatarFinding
     Mass = 10,
     OtherSkinIssue = 11,
 
-    // Devices / lines / drains / tubes
+    
     Dexcom = 100,
     IV = 101,
     Drain = 102,
-    AirwayAccess = 103,  // ETT / trach / etc (details go in Note/Assessment for now)
+    AirwayAccess = 103,  
     ChestTube = 104,
     NGT = 105,
     Foley = 106,

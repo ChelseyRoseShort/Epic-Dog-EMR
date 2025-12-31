@@ -94,7 +94,7 @@ public static class OhNoEventMappings
 
     public static OhNoEvent ToEntity(this OhNoEventDto dto) => new()
     {
-        Id = dto.Id,   // EF will ignore this on Add
+        Id = dto.Id,   
         PetId = dto.PetId,
         VetTripId = dto.VetTripId,
         BrainTaskId = dto.BrainTaskId,
@@ -179,7 +179,7 @@ public static class OhNoEventMappings
         OtherTitle = dto.OtherTitle
     };
 
-    // Optional helper if you support editing existing events
+
     public static void UpdateFromDto(this OhNoEvent entity, OhNoEventDto dto)
     {
         entity.Type = dto.Type;

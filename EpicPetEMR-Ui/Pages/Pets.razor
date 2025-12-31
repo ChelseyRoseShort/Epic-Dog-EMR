@@ -13,7 +13,7 @@ else
 {
     if (petCurrentlyBeingEdited is not null)
     {
-        <!-- When editing, wrap the entire table in a single EditForm so inputs are valid and submit works -->
+
         
 
         <EditForm Model="@petDraftBeingEdited" OnValidSubmit="@SaveChangesAsync">
@@ -158,7 +158,7 @@ else
     }
     else
     {
-        <!-- Not editing anything: render a simple view-only table -->
+       
         <td><button class="btn btn-primary btn-sm" @onclick="() => OpenAddPetForm()">Add Pet</button></td>
         @if (showform)
         {
@@ -291,28 +291,28 @@ else
         width:140px;
 
     }
-    /* click-to-complete visual */
+
 .done {
     box-shadow: inset 0 0 0 2px #2ecc71;
 }
 
 
-/* Make the scroll container define the sticky context */
+
 .board {
     position: relative;        /* ensures sticky works predictably */
     overflow: auto;            /* you already have this */
 }
 
-/* Header row stays at top while vertical scrolling */
+
 .header {
     position: sticky;
     top: 0;
-    z-index: 6;                /* above the left column so they don't overlap weirdly */
+    z-index: 6;                
     background: var(--bg-header);
     font-weight: 600;
 }
 
-/* Left patient-name column stays visible while horizontal scrolling */
+
 .sticky-left {
     position: sticky;
     left: 0;
@@ -323,7 +323,7 @@ else
     overflow: hidden;
     text-overflow: ellipsis;
 
-    /* add a visual separator so it feels like a fixed column */
+  
     box-shadow: 1px 0 0 rgba(0,0,0,0.06);
 }
 
@@ -332,12 +332,12 @@ else
     overflow:scroll;
 }
 
-/* Top-left corner (fixed for both directions) */
+
 .corner {
     position: sticky;
     top: 0;
     left: 0;
-    z-index: 7;                /* above everything */
+    z-index: 7;             
     background: var(--bg-header);
     font-weight: 700;
 }
@@ -348,7 +348,7 @@ else
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* dark background */
+    background-color: rgba(0, 0, 0, 0.5); 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -377,7 +377,7 @@ else
 }
 
 @code {
-    // ----- State fields with explicit names -----
+ 
     private bool isPageDataLoading = true;
     private string? loadErrorMessage;
     private string? petInfo;
@@ -391,19 +391,18 @@ else
 
     private void HandleValidSubmit()
     {
-        // For now, just simulate saving.
-        // Later, we’ll send it to an API or database.
+       
         Console.WriteLine($"New Pet Added: {newPet.Name}, {newPet.Species}");
         petInfo = newPet.Name;
         submitted = true;
     }
-    // The pet row currentl  in "edit mode" (reference to the original item in the list)
+
     private PetDto? petCurrentlyBeingEdited;
 
-    // A separate, editable draft copy of the pet. We only copy it back on Save.
+ 
     private PetDto petDraftBeingEdited = new();
 
-    // ----- Lifecycle -----
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -420,11 +419,11 @@ else
         }
     }
 
-    // ----- Commands -----
+
     private void EnableEdit(PetDto petToEdit)
     {
         petCurrentlyBeingEdited = petToEdit;
-        petDraftBeingEdited = CreateDeepCopyOfPet(petToEdit); // work on a copy so Cancel discards changes
+        petDraftBeingEdited = CreateDeepCopyOfPet(petToEdit);
         if (!string.IsNullOrWhiteSpace(petDraftBeingEdited.WeightUnit))
             petDraftBeingEdited.WeightUnit = petDraftBeingEdited.WeightUnit.Trim().ToLower();
     }
@@ -443,7 +442,7 @@ else
     }
     private void CancelEdit()
     {
-        // Throw away the draft and exit edit mode
+       
         petCurrentlyBeingEdited = null;
         petDraftBeingEdited = new();
         StateHasChanged();
@@ -472,7 +471,7 @@ else
 
     private async Task SaveChangesAsync()
     {
-        // Save changes to the API, then copy draft values back into the original list item
+        
         if (petCurrentlyBeingEdited is null)
             return;
 
@@ -480,7 +479,7 @@ else
 
         CopyPetValuesIntoExistingInstance(source: petDraftBeingEdited, destination: petCurrentlyBeingEdited);
 
-        // Exit edit mode
+        
         petCurrentlyBeingEdited = null;
         petDraftBeingEdited = new();
         StateHasChanged();
@@ -492,7 +491,7 @@ else
 
         await Api.AddPetAsync(newPet);
 
-        // Exit edit mode
+    
 
         StateHasChanged();
         showform = !showform;
@@ -504,7 +503,7 @@ else
     {
         showform = !showform;
     }
-    // ----- Helpers (copy/clone) -----
+ 
     private static PetDto CreateDeepCopyOfPet(PetDto source) => new PetDto
     {
         Id = source.Id,
@@ -516,7 +515,7 @@ else
         Weight = source.Weight,
            WeightUnit = source.WeightUnit?.Trim().ToLower(),
         DateOfBirth = source.DateOfBirth,
-        // If Family should be editable, consider cloning it as well. For now, keep reference.
+     
         Family = source.Family
     };
 

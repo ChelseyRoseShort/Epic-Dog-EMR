@@ -10,7 +10,7 @@
 @inject PetApi Api
 @inject IJSRuntime JS
 
-<!-- Oh No Event Modal -->
+
 <AddMedication IsOpen="isAddOhNoOpen"
                Title="Add Oh No Event"
                OnClose="() => isAddOhNoOpen = false"
@@ -20,7 +20,7 @@
         <DataAnnotationsValidator />
         <ValidationSummary />
 
-        <!-- Basics (always shown) -->
+
         <div class="form-row">
             <label>Type</label>
             <InputSelect TValue="OhNoEventType"
@@ -48,7 +48,7 @@
             <InputTextArea class="form-control" @bind-Value="_model.Notes" />
         </div>
 
-        <!-- Generic flags (always shown) -->
+     
         <fieldset class="section">
             <legend>General</legend>
 
@@ -505,9 +505,9 @@
 
         </div>
         </div>
-        <!-- Profile Grid Layout -->
+      
         <div class="profile-grid">
-            <!-- Sidebar: Photo Card -->
+         
             <aside class="profile-sidebar">
                 <div class="photo-card">
                     <div class="image-wrapper">
@@ -538,13 +538,12 @@
                     <i class="fa-solid fa-plus"></i> Add Medication
                 </button>
 
-                <!-- Add Vet Appointment Button -->
                 <button class="btn-primary" @onclick="OpenAddVetTripModal">
                     <i class="fa-solid fa-plus"></i> Add Veterinary Appointment
                 </button>
             </aside>
 
-            <!-- Main Content: Medications -->
+        
            
             <main class="profile-content">
                 <div class="section-header">
@@ -745,8 +744,8 @@
             <style>
             .avatar-container {
   position: relative;
-  width: 600px;   /* match your image display size */
-  height: 600px;  /* match your image display size */
+  width: 600px;   
+  height: 600px; 
 }
 
 .avatar-image{
@@ -758,17 +757,17 @@
   object-fit: contain;
   z-index: 1;
 
-  /* important: let clicks pass through to the grid */
+  
   pointer-events: none;
 }
 
-/* targets the grid root div from the component */
+
 .avatar-container .grid{
   position: absolute;
   top:-20px;
   
   z-index: 2;
-        /* invisible but still clickable */
+   
   pointer-events: auto;
 }
 
@@ -1221,21 +1220,21 @@
             set(val);
         }));
 
-        // "No"
+     
         builder.OpenElement(seq++, "option");
         builder.AddAttribute(seq++, "value", "false");
         if (!current) builder.AddAttribute(seq++, "selected", true);
         builder.AddContent(seq++, "No");
         builder.CloseElement();
 
-        // "Yes"
+    
         builder.OpenElement(seq++, "option");
         builder.AddAttribute(seq++, "value", "true");
         if (current) builder.AddAttribute(seq++, "selected", true);
         builder.AddContent(seq++, "Yes");
         builder.CloseElement();
 
-        builder.CloseElement(); // select
+        builder.CloseElement(); 
     };
 
     private void openAvatarDeleteConfirm(int findingId)
@@ -1247,8 +1246,7 @@
     }
 
 
-    // Treat all bool? as false unless checked.
-    // Run this when you open the modal and right before saving.
+  
     private static readonly PropertyInfo[] _ohNoProps =
         typeof(OhNoEventDto).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
@@ -1300,74 +1298,72 @@
     {
         _model.Type = newType;
 
-        // Clear answers that don't apply (bool? -> false, others -> null)
+     
         ClearAllTypeSpecificFieldsToFalse();
 
         return Task.CompletedTask;
     }
 
-    // When switching types, reset type-specific answers.
-    // bool? fields are set to false (so they behave like "unchecked").
+
     private void ClearAllTypeSpecificFieldsToFalse()
     {
-        // Seizure bools
+    
         _model.SeizureWasGeneralized = false;
         _model.SeizureLossOfConsciousness = false;
         _model.SeizureUrination = false;
         _model.SeizureIncontinentBM = false;
         _model.SeizureClusterToday = false;
 
-        // Bleeding bools
+
         _model.BleedingIsActive = false;
         _model.BleedingOnBloodThinnerMedication = false;
 
-        // GI bools
+     
         _model.GiVomiting = false;
         _model.GiDiarrhea = false;
         _model.GiBloodInVomit = false;
         _model.GiBloodInStool = false;
         _model.GiForeignBodySuspected = false;
 
-        // Cardiac bools
+       
         _model.CardiacKnownHeartDisease = false;
 
-        // Resp bools
+   
         _model.RespLaboredBreathing = false;
         _model.RespOpenMouthBreathing = false;
         _model.RespCoughing = false;
 
-        // Trauma bools
+
         _model.TraumaLossOfConsciousness = false;
         _model.TraumaLimping = false;
         _model.TraumaBleedingPresent = false;
 
-        // Ingestion bools
         _model.IngestionVomitedAfter = false;
         _model.IngestionPoisonControlContacted = false;
 
-        // Urinary bools
+      
         _model.UrinaryStraining = false;
         _model.UrinaryFrequentSmallAmounts = false;
         _model.UrinaryBloodInUrine = false;
 
-        // Pain bools
+       
         _model.PainSuddenOnset = false;
         _model.PainNonWeightBearing = false;
         _model.PainCryingOut = false;
 
-        // Behavior bools
+    
         _model.BehaviorSuddenAggression = false;
         _model.BehaviorRestlessOrPacing = false;
         _model.BehaviorDisorientation = false;
         _model.BehaviorHidingOrWithdrawn = false;
 
-        // Medication bools
+      
         _model.MedMissedDose = false;
         _model.MedExtraDose = false;
     }
 
 
-    // Checkbox renderer for bool? fields: null -> unchecked, checked -> true, unchecked -> false
+
     private RenderFragment BoolCheckbox(Func<bool?> get, Action<bool?> set) => builder =>
     {
         var seq = 0;
@@ -1457,7 +1453,7 @@
         Console.WriteLine("applying color theme");
         try
         {
-            await Task.Delay(250); // wait for image to render
+            await Task.Delay(250); 
 
             var colors = await JS.InvokeAsync<ColorPalette>(
                 "colorTools.extractColors",

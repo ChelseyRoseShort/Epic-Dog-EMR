@@ -10,7 +10,7 @@ public class VaccineRecord
     public Pet Pet { get; set; } = default!;
 
     [Required, MaxLength(160)]
-    public string Vaccine { get; set; } = default!;  // Rabies, DHPP, etc.
+    public string Vaccine { get; set; } = default!;  
 
     public DateOnly DateAdministered { get; set; }
     public DateOnly? ExpiresOn { get; set; }

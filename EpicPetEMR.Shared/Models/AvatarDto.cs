@@ -14,7 +14,7 @@ public sealed class AvatarDto
     public DateTime? RemovedAtUtc { get; set; }
 
     public string? Note { get; set; }
-    public string? Assessment { get; set; } //later add time and put on brain
+    public string? Assessment { get; set; } //later I'll add time and put it on the brain
 
     public int? PhotoDocumentId { get; set; }
 
@@ -26,10 +26,6 @@ public sealed class AvatarDto
 
 public sealed class CreateAvatarRequest
 {
-    // Recommended: do NOT send PetId in body; use route petId.
-    // If you keep it, ignore/overwrite it server-side.
-    // public int PetId { get; set; }
-
     public AvatarFinding Type { get; set; }
     public bool IsActive { get; set; } = true;
 

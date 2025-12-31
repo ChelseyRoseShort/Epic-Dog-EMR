@@ -55,14 +55,14 @@ else
     private bool loading = true;
     private string? error;
 
-    // For Blazor WASM, HttpClient is injected by default
+  
     [Inject] private HttpClient Http { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            // Call the API directly (different port)
+   
             pets = await Http.GetFromJsonAsync<List<PetDto>>(
                 "http://localhost:5070/demo/pets");
         }
@@ -76,7 +76,7 @@ else
         }
     }
 
-    // Match the shape returned by /demo/pets
+
     public class PetDto
     {
         public int Id { get; set; }

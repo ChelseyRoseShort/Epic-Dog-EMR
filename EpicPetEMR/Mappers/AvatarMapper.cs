@@ -63,7 +63,7 @@ public static class AvatarMapping
         {
             var existing = entity.Assessment ?? string.Empty;
 
-            // Prevent duplicates if you want
+          
             if (!existing.Contains(addition, StringComparison.OrdinalIgnoreCase))
             {
                 entity.Assessment = string.IsNullOrWhiteSpace(existing)

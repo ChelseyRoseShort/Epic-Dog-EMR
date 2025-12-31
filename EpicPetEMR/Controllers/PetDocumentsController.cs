@@ -41,7 +41,7 @@ namespace EpicPetEMR.Api.Controllers
             int petId,
             [FromForm] UploadPetDocumentRequest request)
         {
-            // Basic guard checks
+    
             if (request.File == null || request.File.Length == 0)
             {
                 return BadRequest("No file uploaded.");
@@ -65,7 +65,7 @@ namespace EpicPetEMR.Api.Controllers
             {
                 PetId       = petId,
                 VetTripId   = request.VetTripId,
-                Type        = request.Type,                         // enum: 0 = VetTrip, 1 = Assessment
+                Type        = request.Type,                        
                 Name        = request.Name,
                 FileName    = request.File.FileName,
                 ContentType = request.File.ContentType ?? "application/octet-stream",
@@ -76,7 +76,7 @@ namespace EpicPetEMR.Api.Controllers
             _db.PetDocuments.Add(doc);
             await _db.SaveChangesAsync();
 
-            // Map to shared DTO
+ 
             var dto = new PetDocumentDto
             {
                 Id          = doc.Id,

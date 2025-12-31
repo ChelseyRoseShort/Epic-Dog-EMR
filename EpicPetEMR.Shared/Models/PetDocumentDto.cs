@@ -8,7 +8,6 @@ namespace EpicPetEMR.Shared.Models
 
         public int PetId { get; set; }
 
-        // Uses your existing shared enum
         public DocumentType Type { get; set; }
 
         public int? VetTripId { get; set; }

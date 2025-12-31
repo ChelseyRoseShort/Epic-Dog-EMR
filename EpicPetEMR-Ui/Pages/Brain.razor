@@ -63,10 +63,9 @@
                 var hasMeds = Tasks.TryGetValue(p.Pet.Id, out var perHour) &&
                 perHour.TryGetValue(h, out meds);
 
-                // make sure meds isn’t null
                 meds ??= new List<MedScheduleItem>();
                 
-                // figure out what is still due vs completed
+              
                 var dueMeds = meds.Where(m => !m.IsCompleted).ToList();
                 bool anyScheduled = meds.Count > 0;
                 bool allCompleted = anyScheduled && dueMeds.Count == 0;
@@ -182,7 +181,7 @@
         opacity: 0;
     }
 
-    /* completed state */
+    
     .task-cell.done {
        
     }
@@ -191,7 +190,7 @@
         color: #2e7d32;
     }
 
-    /* let completed cells still be clickable */
+   
     .overlay-button {
         position: absolute;
         inset: 0;
@@ -208,10 +207,10 @@
     [Parameter] public int EndHour { get; set; } = 19;
 
 
-    // Gotta initialize the PetId and the VetTripId here:
+
     private int? _selectedPetId;
     private int? _selectedVetTripId;
-    // Initilize file
+  
     private List<IBrowserFile> _pendingFiles = new();
     private bool _loading = true;
     private string? _error;
@@ -308,7 +307,7 @@
         _selectedPetId = petId;
         _selectedVetTripId = tripId;
 
-        // Go to the vet trip page
+     
         isAddDocumentOpen = true;
     }
 

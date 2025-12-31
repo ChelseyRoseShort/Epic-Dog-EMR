@@ -16,33 +16,30 @@ builder.Services.AddSwaggerGen();
 
 
 
-
-
-// CORS (dev-wide). Switch to a named, restricted policy later.
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy
-        .AllowAnyOrigin()   // ok for dev only
+        .AllowAnyOrigin()   
         .AllowAnyMethod()
         .AllowAnyHeader());
 });
 
-// DbContext + SQLite
+
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
-// Swagger
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 app.MapControllers();
 
-// Order matters
+
 app.UseHttpsRedirection();
-app.UseCors(); // CORS before endpoints (and before auth, if you add it later)
+app.UseCors(); 
 app.UseStaticFiles();
-// Auto-migrate on startup
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

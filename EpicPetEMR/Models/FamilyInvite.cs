@@ -10,12 +10,12 @@ public class FamilyInvite
     public Family Family { get; set; } = default!;
 
     [Required, MaxLength(64)]
-    public string Token { get; set; } = default!; // random url-safe string
+    public string Token { get; set; } = default!; 
 
     public DateTimeOffset ExpiresAt { get; set; }
 
     [MaxLength(256)]
-    public string? Email { get; set; }            // optional intended recipient
+    public string? Email { get; set; }            
 
-    public int? AcceptedUserId { get; set; }      // filled once used
+    public int? AcceptedUserId { get; set; }      
 }
