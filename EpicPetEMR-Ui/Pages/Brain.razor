@@ -53,7 +53,24 @@
             var rowClass = (idx % 2 == 0) ? "row-even" : "row-odd";
 
             <div class="cell sticky-left @rowClass">
-                <a href="petprofile/@p.Pet.Id">@p.Pet.Name</a>
+                <a class="hover-parent" href="petprofile/@p.Pet.Id">@p.Pet.Name</a>
+                <div class="hidden-initially">
+
+                    <ul>
+
+                        <li>
+                            @p.Pet.Breed
+                        </li>
+                        
+                        <li>
+                            @p.Pet.Sex
+                        </li>
+                    </ul>
+
+                </div>
+                    <style> .hidden-initially { opacity:0;}
+                    .hover-parent:hover + .hidden-initially { opacity:1;}
+                    </style>
             </div>
 
             @foreach (var h in Hours)

@@ -515,7 +515,7 @@
                         {
                             <img 
                                  class="pet-profile-image"
-                                 src="@($"http://petchanceemr.chelseyshort.com{pet.ProfilePic}")"
+                                 src="@($"https://localhost:3455/{pet.ProfilePic}")"
                                  alt="@pet.Name" />
                         }
                         else
@@ -541,6 +541,7 @@
                 <button class="btn-primary" @onclick="OpenAddVetTripModal">
                     <i class="fa-solid fa-plus"></i> Add Veterinary Appointment
                 </button>
+                <h3>Medical Conditions</h3>
             </aside>
 
         
@@ -659,7 +660,7 @@
                                             <div class="document-thumb">
                                                 @if (doc.ContentType?.StartsWith("image/") == true)
                                                 {
-                                                    <img src="@($"http://petchanceemr.chelseyshort.com/api/documents/{doc.Id}/preview")"
+                                                    <img src="@($"https://localhost:5173/api/documents/{doc.Id}/preview")"
                                                          alt="@doc.FileName"
                                                          class="document-thumb-img" />
                                                 }
@@ -696,7 +697,7 @@
                                                     else
                                                     {
                                                         <a class="btn-doc"
-                                                           href="@($"http://petchanceemr.chelseyshort.com/api/documents/{doc.Id}/preview")"
+                                                           href="@($"https://localhost:5173api/documents/{doc.Id}/preview")"
                                                            target="_blank">
                                                             View
                                                         </a>
@@ -704,7 +705,7 @@
 
                                                     <a class="btn-doc secondary"
                                                        download
-                                                       href="@($"http://petchanceemr.chelseyshort.com/api/documents/{doc.Id}/download")">
+                                                       href="@($"https://localhost:5173api/documents/{doc.Id}/download")">
                                                         Download
                                                     </a>
                                                 </div>
@@ -1165,20 +1166,20 @@
     private string CurrentImage => _activeImages.TryGetValue(currentAvatarView, out var url) ? url : _activeImages[AvatarView.Center];
     private static readonly Dictionary<AvatarView, string> avatarImageUrls = new()
     {
-        { AvatarView.Up, $"http://petchanceemr.chelseyshort.com/avatarpics/top-down.png" },
-        { AvatarView.Down, "http://petchanceemr.chelseyshort.com/avatarpics/underbelly.png" },
-        { AvatarView.Center, "http://petchanceemr.chelseyshort.com/avatarpics/face-view.png" },
-        { AvatarView.Left, "http://petchanceemr.chelseyshort.com/avatarpics/left-side.png" },
-        { AvatarView.Right, "http://petchanceemr.chelseyshort.com/avatarpics/right-side.png" }
+        { AvatarView.Up, $"https://localhost:3455/avatarpics/top-down.png" },
+        { AvatarView.Down, "https://localhost:3455/avatarpics/underbelly.png" },
+        { AvatarView.Center, "https://localhost:3455/avatarpics/face-view.png" },
+        { AvatarView.Left, "https://localhost:3455/avatarpics/left-side.png" },
+        { AvatarView.Right, "https://localhost:3455/avatarpics/right-side.png" }
     };
 
     private static readonly Dictionary<AvatarView, string> avatarCatImageUrls = new()
     {
-        { AvatarView.Up, $"http://petchanceemr.chelseyshort.com/avatarpics/top-down-cat.png" },
-        { AvatarView.Down, "http://petchanceemr.chelseyshort.com/avatarpics/underbelly-cat.png" },
-        { AvatarView.Center, "http://petchanceemr.chelseyshort.com/avatarpics/face-view-cat.png" },
-        { AvatarView.Left, "http://petchanceemr.chelseyshort.com/avatarpics/left-side-cat.png" },
-        { AvatarView.Right, "http://petchanceemr.chelseyshort.com/avatarpics/right-side-cat.png" }
+        { AvatarView.Up, $"https://localhost:3455/avatarpics/top-down-cat.png" },
+        { AvatarView.Down, "https://localhost:3455/avatarpics/underbelly-cat.png" },
+        { AvatarView.Center, "https://localhost:3455/avatarpics/face-view-cat.png" },
+        { AvatarView.Left, "https://localhost:3455/avatarpics/left-side-cat.png" },
+        { AvatarView.Right, "https://localhost:3455/avatarpics/right-side-cat.png" }
     };
 
     Dictionary<AvatarView, BodyMapKey> avatarMap = new () 
@@ -1378,7 +1379,7 @@
 
     private void OpenPdfPreview(int docId)
     {
-        pdfPreviewUrl = $"http://petchanceemr.chelseyshort.com/api/documents/{docId}/preview";
+        pdfPreviewUrl = $"https://localhost:5173api/documents/{docId}/preview";
     }
 
     private void ClosePdfPreview()

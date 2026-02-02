@@ -253,7 +253,7 @@ else
 
     var photoUrl = pic.StartsWith("http", StringComparison.OrdinalIgnoreCase)
         ? pic                                           
-        : $"http://petchanceemr.chelseyshort.com{pic}";             
+        : $"https://localhost:5173/{pic}";             
 }
 
 @if (!string.IsNullOrEmpty(currentPet.ProfilePic))
