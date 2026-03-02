@@ -1,0 +1,48 @@
+﻿@page "/register"
+@using EpicPetEMR.Shared.Models.Auth
+@inject EpicPetEMR_Ui.Services.AuthApi Auth
+@inject EpicPetEMR_Ui.Services.TokenStore Tokens
+
+<h3>Register</h3>
+
+<div style="max-width: 420px;">
+    <input placeholder="Email" @bind="Model.Email" />
+    <br />
+    <input placeholder="Password" type="password" @bind="Model.Password" />
+    <br />
+    <input placeholder="Family name" @bind="Model.FamilyName" />
+    <br />
+    <button @onclick="DoRegister">Create account</button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+    <p>@Message</p>
+}
+
+@code {
+    private RegisterRequest Model = new();
+    private string? Message;
+
+    private async Task DoRegister()
+    {
+        Message = null;
+
+        try
+        {
+            var res = await Auth.RegisterAsync(Model);
+
+            // Updated: TokenStore uses SetTokenAsync (not SetAsync)
+            await Tokens.SetTokenAsync(res.Token);
+
+            // Optional but useful for UI display
+            await Tokens.SetEmailAsync(Model.Email);
+
+            Message = "Registered. Token saved to localStorage.";
+        }
+        catch (Exception ex)
+        {
+            Message = ex.Message;
+        }
+    }
+}

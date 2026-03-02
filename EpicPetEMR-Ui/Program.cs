@@ -7,8 +7,11 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:3455/") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://petchanceemr.chelseyshort.com/") });
 builder.Services.AddScoped<PetApi>();
+builder.Services.AddScoped<EpicPetEMR_Ui.Services.TokenStore>();
+builder.Services.AddScoped<EpicPetEMR_Ui.Services.AuthApi>();
+
 builder.Services.AddScoped<MedicationScheduleService>();
 
 

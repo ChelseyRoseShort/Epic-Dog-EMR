@@ -1,0 +1,53 @@
+﻿@page "/login"
+@using EpicPetEMR.Shared.Models.Auth
+@inject EpicPetEMR_Ui.Services.AuthApi Auth
+@inject EpicPetEMR_Ui.Services.TokenStore Tokens
+
+<h3>Login 21</h3>
+
+<div style="max-width: 420px;">
+    <input placeholder="Email" @bind="Model.Email" />
+    <br />
+    <input placeholder="Password" type="password" @bind="Model.Password" />
+    <br />
+    <button @onclick="DoLogin">Sign in</button>
+    <button @onclick="DoLogout" style="margin-left: 8px;">Clear token</button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Message))
+{
+    <p>@Message</p>
+}
+
+@code {
+    private LoginRequest Model = new();
+    private string? Message;
+
+    private async Task DoLogin()
+    {
+        Message = null;
+
+        try
+        {
+            var res = await Auth.LoginAsync(Model);
+
+            // If your TokenStore includes the back-compat alias, this works:
+            await Tokens.SetAsync(res.Token);
+
+            // Also store the email for display in layout/nav
+            await Tokens.SetEmailAsync(Model.Email);
+
+            Message = "Logged in. Token saved to localStorage.";
+        }
+        catch (Exception ex)
+        {
+            Message = ex.Message;
+        }
+    }
+
+    private async Task DoLogout()
+    {
+        await Tokens.ClearAsync();
+        Message = "Token cleared.";
+    }
+}

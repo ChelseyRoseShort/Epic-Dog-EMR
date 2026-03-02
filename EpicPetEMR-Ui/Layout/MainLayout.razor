@@ -1,10 +1,16 @@
 ﻿@inherits LayoutComponentBase
+@using EpicPetEMR_Ui.Services
+@inject TokenStore Tokens
+@using System.IdentityModel.Tokens.Jwt
 <div class="page">
     <div class="sidebar">
         <NavMenu />
     </div>
 
     <main>
+        <div class="top-row px-4">
+            <p>Signed in as: @_label</p>
+        </div>
         <div class="top-row px-4">
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
@@ -14,3 +20,24 @@
         </article>
     </main>
 </div>
+
+@code {
+    private string _label = "(not signed in)";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await Tokens.GetTokenAsync();
+        if (string.IsNullOrWhiteSpace(token)) return;
+
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+
+        var email = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value
+                    ?? jwt.Claims.FirstOrDefault(c => c.Type.EndsWith("/emailaddress"))?.Value;
+
+        var display = jwt.Claims.FirstOrDefault(c => c.Type == "display_name")?.Value;
+
+        _label = !string.IsNullOrWhiteSpace(display) ? display :
+                 !string.IsNullOrWhiteSpace(email) ? email :
+                 "(signed in)";
+    }
+}

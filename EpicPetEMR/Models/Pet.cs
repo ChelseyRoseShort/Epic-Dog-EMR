@@ -1,3 +1,4 @@
+using EpicPetEMR.Models;
 using EpicPetEMR.Shared.Models;
 
 namespace EpicPetEMR.Api.Models;
@@ -23,4 +24,6 @@ public class Pet
 
     public List<Appointment> Appointments { get; set; } = new();
     public List<Attachment> Attachments { get; set; } = new();
+    public List<PetMedicalHistory> MedicalHistory { get; set; } = new();
+
 }

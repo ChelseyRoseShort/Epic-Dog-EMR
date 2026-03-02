@@ -515,7 +515,7 @@
                         {
                             <img 
                                  class="pet-profile-image"
-                                 src="@($"https://localhost:3455/{pet.ProfilePic}")"
+                                 src="@($"http://petchanceemr.chelseyshort.com/{pet.ProfilePic}")"
                                  alt="@pet.Name" />
                         }
                         else
@@ -542,6 +542,26 @@
                     <i class="fa-solid fa-plus"></i> Add Veterinary Appointment
                 </button>
                 <h3>Medical Conditions</h3>
+                @foreach(var hx in medicalhx)
+                {
+                  
+                    <div class="med-card">
+                                <div class="med-card-header">
+                                    <h3><i></i> @hx.Diagnosis </h3>
+                                    <span style="font-size:12px;" class="med-dose">Diagnosed: @(hx.DiagnosedOn?.ToString("MM/dd/yyyy") ?? "")
+ </span>
+                                </div>
+                                <div class="med-card-body">
+                                   
+                              
+                                    <p class="med-instructions">@hx.Notes</p>
+                                </div>
+                              
+                                    </div>
+                }
+                 <button class="btn-primary" @onclick="OpenAddMedicalHistoryModal">
+                    <i class="fa-solid fa-plus"></i> Add Medical Condition
+                </button>
             </aside>
 
         
@@ -604,27 +624,33 @@
                 <h2>@pet.Name's Oh No Events</h2>
                 @if (OhNoEvents.Any())
                 {
-                    <ul class="oh-no-events-list">
-                        @foreach(var ohno in OhNoEvents)
-                        {
-                           @foreach (var prop in typeof(OhNoEventDto).GetProperties())
-                           {
-                            var value = prop.GetValue(ohno);
-                            @if(value ==  null)
-                            {
-                                continue;
-                            }
-                            @if (value is bool b && b == false)
-                            {
-                                continue;
-                            }
-                            <li>
-                                            <strong>@addspaces(prop.Name.ToString()):</strong> @prop.GetValue(ohno)
-                                       
-                            </li>
-                           }
-                        }
-                    </ul>
+                   <ul class="oh-no-events-list">
+  @foreach (var e in OhNoEvents)
+  {
+    <li class="oh-no-event">
+      <div class="oh-no-event__header">
+        <strong>@e.Type</strong>
+        <span class="oh-no-event__date"> Occurred at: @e.OccurredAt.ToString("MMM d, yyyy h:mm tt")</span>
+      </div>
+
+      <div class="oh-no-event__details">
+        @if (!string.IsNullOrWhiteSpace(e.Notes))
+        {
+          <div><strong>Notes:</strong> @e.Notes</div>
+        }
+
+        @if (e.SeizureDurationSeconds != null)
+        {
+          <div><strong>Duration:</strong> @e.SeizureDurationSeconds min</div>
+        }
+       
+
+      
+      </div>
+    </li>
+  }
+</ul>
+
                 }
                 </div>
             }
@@ -660,7 +686,7 @@
                                             <div class="document-thumb">
                                                 @if (doc.ContentType?.StartsWith("image/") == true)
                                                 {
-                                                    <img src="@($"https://localhost:5173/api/documents/{doc.Id}/preview")"
+                                                    <img src="@($"https://petchanceemr.chelseyshort.com/api/documents/{doc.Id}/preview")"
                                                          alt="@doc.FileName"
                                                          class="document-thumb-img" />
                                                 }
@@ -697,7 +723,7 @@
                                                     else
                                                     {
                                                         <a class="btn-doc"
-                                                           href="@($"https://localhost:5173api/documents/{doc.Id}/preview")"
+                                                           href="@($"http://petchanceemr.chelseyshort.com/api/documents/{doc.Id}/preview")"
                                                            target="_blank">
                                                             View
                                                         </a>
@@ -705,7 +731,7 @@
 
                                                     <a class="btn-doc secondary"
                                                        download
-                                                       href="@($"https://localhost:5173api/documents/{doc.Id}/download")">
+                                                       href="@($"http://petchanceemr.chelseyshort.com/api/documents/{doc.Id}/download")">
                                                         Download
                                                     </a>
                                                 </div>
@@ -793,6 +819,30 @@
                 </div>
             </div>
         }
+        <AddMedication IsOpen="isAddMedicalHistoryOpen"
+                       Title="Add Medical Condition"
+                       OnClose="() => isAddMedicalHistoryOpen = false"
+                       OnConfirm="SaveMedicalHistory">
+             <div class="form-group full-width">
+                    <label>Diagnosis</label>
+                    <input class="form-input"
+                           @bind="newPetMedicalHistory.Diagnosis"
+                           placeholder="e.g. Diabetes" />
+                </div>
+                 <div class="form-group">
+                    <label>Date Diagnosed</label>
+                    <input type="date"
+                           class="form-input"
+                           @bind="newPetMedicalHistory.DiagnosedOn" />
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <input 
+                      class="form-input"
+                           @bind="newPetMedicalHistory.Notes" />
+                </div>
+
+                </AddMedication>
 
         <AddMedication IsOpen="isAddMedOpen"
                        Title="Add Medication"
@@ -1085,7 +1135,9 @@
     private PetDto? pet;
     private List<MedicationDto> meds = new();
     private List<AvatarDto> Avatars = new();
+    private List<PetMedicalHistoryDto> medicalhx = new();
     private MedicationDto newMedication = new();
+    private PetMedicalHistoryDto newPetMedicalHistory = new();
     private MedicationDto? medToDelete;
     private AvatarDto? avatarToDelete = new();
     private VetTripDto newVetTrip = new();
@@ -1098,6 +1150,7 @@
     private bool showdocuments = false;
     private bool isLoading = true;
     private bool isAddMedOpen = false;
+    private bool isAddMedicalHistoryOpen = false;
     private bool isOpenReassesmentForm = false;
     private bool isAddVetTripOpen = false;
     private bool isAvatarFormOpen = false;
@@ -1166,20 +1219,20 @@
     private string CurrentImage => _activeImages.TryGetValue(currentAvatarView, out var url) ? url : _activeImages[AvatarView.Center];
     private static readonly Dictionary<AvatarView, string> avatarImageUrls = new()
     {
-        { AvatarView.Up, $"https://localhost:3455/avatarpics/top-down.png" },
-        { AvatarView.Down, "https://localhost:3455/avatarpics/underbelly.png" },
-        { AvatarView.Center, "https://localhost:3455/avatarpics/face-view.png" },
-        { AvatarView.Left, "https://localhost:3455/avatarpics/left-side.png" },
-        { AvatarView.Right, "https://localhost:3455/avatarpics/right-side.png" }
+        { AvatarView.Up, $"http://petchanceemr.chelseyshort.com/avatarpics/top-down.png" },
+        { AvatarView.Down, "http://petchanceemr.chelseyshort.com/avatarpics/underbelly.png" },
+        { AvatarView.Center, "http://petchanceemr.chelseyshort.com/avatarpics/face-view.png" },
+        { AvatarView.Left, "http://petchanceemr.chelseyshort.com/avatarpics/left-side.png" },
+        { AvatarView.Right, "http://petchanceemr.chelseyshort.com/avatarpics/right-side.png" }
     };
 
     private static readonly Dictionary<AvatarView, string> avatarCatImageUrls = new()
     {
-        { AvatarView.Up, $"https://localhost:3455/avatarpics/top-down-cat.png" },
-        { AvatarView.Down, "https://localhost:3455/avatarpics/underbelly-cat.png" },
-        { AvatarView.Center, "https://localhost:3455/avatarpics/face-view-cat.png" },
-        { AvatarView.Left, "https://localhost:3455/avatarpics/left-side-cat.png" },
-        { AvatarView.Right, "https://localhost:3455/avatarpics/right-side-cat.png" }
+        { AvatarView.Up, $"http://petchanceemr.chelseyshort.com/avatarpics/top-down-cat.png" },
+        { AvatarView.Down, "http://petchanceemr.chelseyshort.com/avatarpics/underbelly-cat.png" },
+        { AvatarView.Center, "http://petchanceemr.chelseyshort.com/avatarpics/face-view-cat.png" },
+        { AvatarView.Left, "http://petchanceemr.chelseyshort.com/avatarpics/left-side-cat.png" },
+        { AvatarView.Right, "http://petchanceemr.chelseyshort.com/avatarpics/right-side-cat.png" }
     };
 
     Dictionary<AvatarView, BodyMapKey> avatarMap = new () 
@@ -1221,14 +1274,14 @@
             set(val);
         }));
 
-     
+
         builder.OpenElement(seq++, "option");
         builder.AddAttribute(seq++, "value", "false");
         if (!current) builder.AddAttribute(seq++, "selected", true);
         builder.AddContent(seq++, "No");
         builder.CloseElement();
 
-    
+
         builder.OpenElement(seq++, "option");
         builder.AddAttribute(seq++, "value", "true");
         if (current) builder.AddAttribute(seq++, "selected", true);
@@ -1247,7 +1300,7 @@
     }
 
 
-  
+
     private static readonly PropertyInfo[] _ohNoProps =
         typeof(OhNoEventDto).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
@@ -1274,7 +1327,7 @@
         _selectedIndex = -1;
         Console.WriteLine("REload data");
         await ReloadAvatar();
-      
+
     }
 
     private async Task SaveOhNoEvent()
@@ -1299,7 +1352,7 @@
     {
         _model.Type = newType;
 
-     
+
         ClearAllTypeSpecificFieldsToFalse();
 
         return Task.CompletedTask;
@@ -1308,7 +1361,7 @@
 
     private void ClearAllTypeSpecificFieldsToFalse()
     {
-    
+
         _model.SeizureWasGeneralized = false;
         _model.SeizureLossOfConsciousness = false;
         _model.SeizureUrination = false;
@@ -1319,17 +1372,17 @@
         _model.BleedingIsActive = false;
         _model.BleedingOnBloodThinnerMedication = false;
 
-     
+
         _model.GiVomiting = false;
         _model.GiDiarrhea = false;
         _model.GiBloodInVomit = false;
         _model.GiBloodInStool = false;
         _model.GiForeignBodySuspected = false;
 
-       
+
         _model.CardiacKnownHeartDisease = false;
 
-   
+
         _model.RespLaboredBreathing = false;
         _model.RespOpenMouthBreathing = false;
         _model.RespCoughing = false;
@@ -1342,23 +1395,23 @@
         _model.IngestionVomitedAfter = false;
         _model.IngestionPoisonControlContacted = false;
 
-      
+
         _model.UrinaryStraining = false;
         _model.UrinaryFrequentSmallAmounts = false;
         _model.UrinaryBloodInUrine = false;
 
-       
+
         _model.PainSuddenOnset = false;
         _model.PainNonWeightBearing = false;
         _model.PainCryingOut = false;
 
-    
+
         _model.BehaviorSuddenAggression = false;
         _model.BehaviorRestlessOrPacing = false;
         _model.BehaviorDisorientation = false;
         _model.BehaviorHidingOrWithdrawn = false;
 
-      
+
         _model.MedMissedDose = false;
         _model.MedExtraDose = false;
     }
@@ -1402,8 +1455,8 @@
     }
     private async Task ReloadAvatar()
     {
-          var findingsCall = Api.GetAvatarById(Id);
-          findings = await findingsCall;
+        var findingsCall = Api.GetAvatarById(Id);
+        findings = await findingsCall;
     }
     private async Task LoadData()
     {
@@ -1416,6 +1469,7 @@
             var petdocs = Api.GetPetDocumentsAsync(Id);
             var ohnoEvents = Api.GetOhNoEventsById(Id);
             var findingsCall = Api.GetAvatarById(Id);
+            var medicalHxCall = Api.GetMedicalHistoryById(Id);
             await Task.WhenAll(petTask, medsTask);
 
             OhNoEvents = await ohnoEvents;
@@ -1423,6 +1477,7 @@
             pet = await petTask;
             meds = await medsTask;
             petDocuments = await petdocs;
+            medicalhx = await medicalHxCall;
             vetTrips = await Api.GetVetTripsByPet(Id);
             docsandVetTrips = petDocuments
                 .Where(d => d.VetTripId.HasValue)
@@ -1486,6 +1541,15 @@
         };
         isAddMedOpen = true;
     }
+
+    private void OpenAddMedicalHistoryModal()
+    {
+        newPetMedicalHistory = new PetMedicalHistoryDto
+        {
+            IsActive = true
+        };
+        isAddMedicalHistoryOpen = true;
+    }
     private void OpenAvatarForm()
     {
         newAvatarFinding = new CreateAvatarRequest
@@ -1535,6 +1599,17 @@
         meds = await Api.GetMedsById(Id);
         isAddMedOpen = false;
     }
+
+    private async Task SaveMedicalHistory()
+    {
+        if(pet == null) return;
+
+        newPetMedicalHistory.PetId = pet.Id;
+        await Api.AddMedicalHistoryAsync(newPetMedicalHistory);
+        
+        isAddMedicalHistoryOpen = false;
+    }
+
 
     private async Task SaveVetTrip()
     {

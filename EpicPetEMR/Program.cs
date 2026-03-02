@@ -3,43 +3,84 @@ using EpicPetEMR.Api.Mappers;
 using EpicPetEMR.Api.Models;
 using EpicPetEMR.Mappers;
 using EpicPetEMR.Shared.Models;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
-using static System.Net.WebRequestMethods;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
-
+// CORS (you can tighten later)
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy
-        .AllowAnyOrigin()   
+        .AllowAnyOrigin()
         .AllowAnyMethod()
         .AllowAnyHeader());
 });
 
-
+// EF Core
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
+// --------------------
+// Identity (int keys) + JWT
+// --------------------
+builder.Services
+    .AddIdentityCore<User>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+        options.Password.RequiredLength = 8;
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+    })
+    .AddRoles<IdentityRole<int>>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var key = builder.Configuration["Jwt:Key"]!;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
-app.MapControllers();
 
-
+// Middleware order matters
 app.UseHttpsRedirection();
-app.UseCors(); 
+app.UseCors();
 app.UseStaticFiles();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+// Auto-migrate (OK for dev; revisit for prod)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -73,8 +114,6 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
-
-
 app.MapGet("/demo/pets", async (AppDbContext db, bool includeMeds = false) =>
 {
     var pets = await db.Pets.Include(p => p.Family).ToListAsync();
@@ -82,34 +121,35 @@ app.MapGet("/demo/pets", async (AppDbContext db, bool includeMeds = false) =>
     {
         return Results.Ok(pets.Select(p => p.ToDto()));
     }
-   var meds = await db.Medications.ToListAsync();
+
+    var meds = await db.Medications.ToListAsync();
     var result = pets.Select(p => new
     {
         Pet = p.ToDto(),
         Medications = meds.Where(m => m.PetId == p.Id).Select(m => m.ToDto()).ToList()
-        
     });
+
     return Results.Ok(result);
 })
 .WithName("ListPetsDemo")
 .WithOpenApi();
 
 app.MapGet("/pets/{petId:int}/medications", async (int petId, AppDbContext db) =>
+{
+    var meds = await db.Medications.Where(m => m.PetId == petId).Select(m => m.ToDto()).ToListAsync();
+    if (meds == null)
     {
-        var meds = await db.Medications.Where(m => m.PetId == petId).Select(m => m.ToDto()).ToListAsync();
-        if (meds == null)
-        {
-            return Results.NotFound("Medications not found");
-        }
-        return Results.Ok(meds);
-
-    }).WithName("GetMedicationsByPetId").WithOpenApi();
-
+        return Results.NotFound("Medications not found");
+    }
+    return Results.Ok(meds);
+})
+.WithName("GetMedicationsByPetId")
+.WithOpenApi();
 
 app.MapGet("/getpet/{id}", async (AppDbContext db, int id) =>
 {
     var pet = await db.Pets.Include(p => p.Family).FirstOrDefaultAsync(p => p.Id == id);
-    return Results.Ok(pet.ToDto());
+    return Results.Ok(pet?.ToDto());
 })
 .WithName("getpetbyid")
 .WithOpenApi();
@@ -117,11 +157,12 @@ app.MapGet("/getpet/{id}", async (AppDbContext db, int id) =>
 app.MapGet("/getmed/{id}", async (AppDbContext db, int id) =>
 {
     var med = await db.Medications.FirstOrDefaultAsync(m => m.Id == id);
-    return Results.Ok(med.ToDto());
-}).WithName("GetMedById").WithOpenApi();
+    return Results.Ok(med?.ToDto());
+})
+.WithName("GetMedById")
+.WithOpenApi();
 
-
-// add profile pic 
+// add profile pic
 app.MapPost("/uploadprofilepic/{id}", async (int id, IFormFile file, AppDbContext db, IWebHostEnvironment env) =>
 {
     var pet = await db.Pets.FindAsync(id);
@@ -129,22 +170,30 @@ app.MapPost("/uploadprofilepic/{id}", async (int id, IFormFile file, AppDbContex
     {
         return Results.NotFound("Pet not found");
     }
+
     var uploadsFolder = Path.Combine(env.ContentRootPath, "wwwroot", "petphotos");
     Directory.CreateDirectory(uploadsFolder);
-    var safefilename = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-    var fullPath = Path.Combine(uploadsFolder, safefilename);
+
+    var safeFilename = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+    var fullPath = Path.Combine(uploadsFolder, safeFilename);
+
     using var stream = new FileStream(fullPath, FileMode.Create);
     await file.CopyToAsync(stream);
-    pet.ProfilePic = $"/petphotos/{safefilename}";
+
+    pet.ProfilePic = $"/petphotos/{safeFilename}";
     await db.SaveChangesAsync();
+
     return Results.Ok(pet.ToDto());
-}).Accepts<IFormFile>("multipart/form-data")
-.Produces<PetDto>().DisableAntiforgery();
+})
+.Accepts<IFormFile>("multipart/form-data")
+.Produces<PetDto>()
+.DisableAntiforgery();
 
 app.MapPost("/addpet", async (AppDbContext db, PetDto petDto) =>
 {
     var pet = petDto.ToEntity();
-     if (string.IsNullOrWhiteSpace(pet.ProfilePic))
+
+    if (string.IsNullOrWhiteSpace(pet.ProfilePic))
     {
         pet.ProfilePic = pet.Species switch
         {
@@ -153,6 +202,7 @@ app.MapPost("/addpet", async (AppDbContext db, PetDto petDto) =>
             _ => ""
         };
     }
+
     db.Pets.Add(pet);
     await db.SaveChangesAsync();
 
@@ -170,6 +220,7 @@ app.MapPost("/addmedication", async (AppDbContext db, MedicationDto medicationDt
     return Results.Created($"/addmedication/{medication.Id}", medication);
 })
 .WithName("AddMedication");
+
 app.MapPost("/addmedicationtwo", async (AppDbContext db, MedicationDto medicationDto) =>
 {
     var medication = medicationDto.ToEntity();
@@ -192,7 +243,7 @@ app.MapPut("/updatepet", async (AppDbContext db, PetDto petDto) =>
 .WithName("UpdatePet")
 .WithOpenApi();
 
-app.MapDelete("/deletepet", async (AppDbContext db, [FromBody] PetDto petDto) =>
+app.MapDelete("/deletepet", async (AppDbContext db, [Microsoft.AspNetCore.Mvc.FromBody] PetDto petDto) =>
 {
     var pet = petDto.ToEntity();
 
@@ -206,7 +257,7 @@ app.MapDelete("/deletepet", async (AppDbContext db, [FromBody] PetDto petDto) =>
 .WithName("DeletePet")
 .WithOpenApi();
 
-app.MapDelete("/deletemed", async (AppDbContext db, [FromBody] MedicationDto medicationDto) =>
+app.MapDelete("/deletemed", async (AppDbContext db, [Microsoft.AspNetCore.Mvc.FromBody] MedicationDto medicationDto) =>
 {
     var med = medicationDto.ToEntity();
 
@@ -219,10 +270,6 @@ app.MapDelete("/deletemed", async (AppDbContext db, [FromBody] MedicationDto med
 })
 .WithName("Deletemed")
 .WithOpenApi();
-
-
-
-
 
 app.MapGet("/example", () => new { test = "Success" })
    .WithName("ExampleEndpoint")

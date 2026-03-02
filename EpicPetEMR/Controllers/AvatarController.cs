@@ -43,6 +43,7 @@ public class AvatarController : ControllerBase
 
     // single by id
     [HttpGet("{id:int}")]
+   
     public async Task<ActionResult<AvatarDto>> GetAvatar(int petId, int id)
     {
         var avatar = await _db.PetFindings

@@ -185,6 +185,9 @@ public sealed class PetApi
     public async Task<List<AvatarDto>> GetAvatarById(int petId, CancellationToken ct = default)
          => await _http.GetFromJsonAsync<List<AvatarDto>>($"api/pets/{petId}/avatars", ct);
 
+    public async Task<List<PetMedicalHistoryDto>> GetMedicalHistoryById(int petId, CancellationToken ct = default)
+         => await _http.GetFromJsonAsync<List<PetMedicalHistoryDto>>($"api/pets/{petId}/medical-history", ct);
+
     public async Task<MedicationDto> AddMedAsync(MedicationDto newMedication)
     {
         var response = await _http.PostAsJsonAsync("addmedication", newMedication);
@@ -197,6 +200,19 @@ public sealed class PetApi
         }
 
         return await response.Content.ReadFromJsonAsync<MedicationDto>();
+    }
+
+public async Task<PetMedicalHistoryDto> AddMedicalHistoryAsync(PetMedicalHistoryDto newPetMedicalHistory)
+    {
+        var petId = newPetMedicalHistory.PetId;
+        var response = await _http.PostAsJsonAsync($"api/pets/{petId}/medical-history", newPetMedicalHistory);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Error adding medical history: {error}");
+            return null;
+        }
+        return await response.Content.ReadFromJsonAsync<PetMedicalHistoryDto>();
     }
 
 public async Task<AvatarDto?> AddAvatarAsync(int petId, CreateAvatarRequest req)
