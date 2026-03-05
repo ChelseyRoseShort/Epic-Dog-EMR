@@ -1,0 +1,347 @@
+@page "/families"
+@using EpicPetEMR_Ui.Services
+@using EpicPetEMR.Shared.Models
+@using Microsoft.AspNetCore.Components.Forms
+@inject FamilyApi Api
+
+@if (isLoading)
+{
+    <div class="mar-state mar-state-loading">
+        <div class="mar-spinner"></div>
+        <p>Loading families...</p>
+    </div>
+}
+else
+{
+    <div class="mar-page-container">
+        <header class="mar-header">
+            <div>
+                <p class="mar-badge">FAMILIES</p>
+                <h1 class="mar-title">My Families</h1>
+                <p class="mar-subtitle">Manage your pet care groups.</p>
+            </div>
+            <div>
+                <button class="epic-pet-button" @onclick="OpenCreateModal">
+                    + New Family
+                </button>
+            </div>
+        </header>
+
+        @if (!families.Any())
+        {
+            <p class="mar-empty">You're not part of any families yet. Create one to get started!</p>
+        }
+        else
+        {
+            @foreach (var family in families)
+            {
+                <article class="mar-med-card" style="margin-bottom: 1.5rem;">
+                    <div class="mar-med-content" style="width: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 class="mar-med-name">@family.Name</h3>
+                            <span class="mar-chip mar-chip-primary">@family.Role</span>
+                        </div>
+
+                        <div style="margin-top: 0.75rem;">
+                            <p class="mar-med-details" style="margin-bottom: 0.5rem;">Members</p>
+                            @foreach (var member in family.Members)
+                            {
+                                <div class="mar-med-meta" style="margin-bottom: 0.25rem;">
+                                    <span class="mar-chip mar-chip-muted">@member.DisplayName (@member.Email)</span>
+                                    <span class="mar-chip mar-chip-primary">@member.Role</span>
+                                </div>
+                            }
+                        </div>
+
+                        @if (family.Role == "Owner" || family.Role == "Admin")
+                        {
+                            <div style="margin-top: 1rem;">
+                                <button class="epic-pet-button epic-pet-button-outlined"
+                                        @onclick="() => OpenInviteModal(family)">
+                                    Invite Member
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </article>
+            }
+        }
+
+        @if (errorMessage is not null)
+        {
+            <p style="color: red; margin-top: 1rem;">@errorMessage</p>
+        }
+    </div>
+
+    @* ── Create Family Modal ───────────────────────────────────────────── *@
+    @if (_showCreateModal)
+    {
+        <div class="modal-overlay">
+            <div class="modal-container">
+                <h3>Create a New Family</h3>
+                <p>Give your family group a name.</p>
+
+                <input class="hold-textarea"
+                       style="width: 100%; padding: 0.5rem; margin-top: 0.75rem;"
+                       placeholder="Family name (e.g. The Smiths)"
+                       @bind="_newFamilyName" />
+
+                @if (_createError is not null)
+                {
+                    <p style="color: red; margin-top: 0.5rem;">@_createError</p>
+                }
+
+                <div class="modal-buttons" style="margin-top: 1rem;">
+                    <button class="epic-pet-button"
+                            @onclick="ConfirmCreateFamily"
+                            disabled="@(string.IsNullOrWhiteSpace(_newFamilyName) || _isSaving)">
+                        @(_isSaving ? "Creating..." : "Create")
+                    </button>
+                    <button class="epic-pet-button epic-pet-button-outlined"
+                            @onclick="CloseCreateModal">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ── Invite Member Modal ───────────────────────────────────────────── *@
+    @if (_showInviteModal && _inviteTargetFamily is not null)
+    {
+        <div class="modal-overlay">
+            <div class="modal-container">
+                <h3>Invite to @_inviteTargetFamily.Name</h3>
+                <p>Enter the email address of the person you'd like to invite.</p>
+
+                <input class="hold-textarea"
+                       style="width: 100%; padding: 0.5rem; margin-top: 0.75rem;"
+                       placeholder="Email address"
+                       @bind="_inviteEmail" />
+
+                @if (_lookedUpUser is not null)
+                {
+                    <div class="mar-med-meta" style="margin-top: 0.5rem;">
+                        <span class="mar-chip mar-chip-primary">✓ Found: @_lookedUpUser.DisplayName</span>
+                    </div>
+                }
+
+                @if (_inviteError is not null)
+                {
+                    <p style="color: red; margin-top: 0.5rem;">@_inviteError</p>
+                }
+
+                <div class="modal-buttons" style="margin-top: 1rem;">
+                    @if (_lookedUpUser is null)
+                    {
+                        <button class="epic-pet-button"
+                                @onclick="LookupUser"
+                                disabled="@(string.IsNullOrWhiteSpace(_inviteEmail) || _isSaving)">
+                            @(_isSaving ? "Searching..." : "Find User")
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="epic-pet-button"
+                                @onclick="ConfirmInvite"
+                                disabled="@_isSaving">
+                            @(_isSaving ? "Inviting..." : "Send Invite")
+                        </button>
+                    }
+                    <button class="epic-pet-button epic-pet-button-outlined"
+                            @onclick="CloseInviteModal">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<FamilyViewModel> families = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    // Create modal
+    private bool _showCreateModal = false;
+    private string _newFamilyName = string.Empty;
+    private string? _createError;
+    private bool _isSaving = false;
+
+    // Invite modal
+    private bool _showInviteModal = false;
+    private FamilyViewModel? _inviteTargetFamily;
+    private string _inviteEmail = string.Empty;
+    private UserLookupDto? _lookedUpUser;
+    private string? _inviteError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFamilies();
+    }
+
+    private async Task LoadFamilies()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            var raw = await Api.GetMyFamiliesAsync();
+            families = raw.Select(f => new FamilyViewModel
+            {
+                Id      = f.Id,
+                Name    = f.Name ?? "Unnamed Family",
+                Role    = f.Role,
+                Members = f.Members?.Select(m => new MemberViewModel
+                {
+                    UserId      = m.UserId,
+                    DisplayName = m.DisplayName ?? m.Email ?? "Unknown",
+                    Email       = m.Email ?? "",
+                    Role        = m.Role
+                }).ToList() ?? new()
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load families: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    // ── Create ───────────────────────────────────────────────────────────────
+
+    private void OpenCreateModal()
+    {
+        _newFamilyName = string.Empty;
+        _createError   = null;
+        _showCreateModal = true;
+    }
+
+    private void CloseCreateModal()
+    {
+        _showCreateModal = false;
+        _newFamilyName   = string.Empty;
+        _createError     = null;
+    }
+
+    private async Task ConfirmCreateFamily()
+    {
+        if (string.IsNullOrWhiteSpace(_newFamilyName)) return;
+
+        _isSaving    = true;
+        _createError = null;
+
+        try
+        {
+            await Api.CreateFamilyAsync(_newFamilyName.Trim());
+            CloseCreateModal();
+            await LoadFamilies();
+        }
+        catch (Exception ex)
+        {
+            _createError = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    // ── Invite ───────────────────────────────────────────────────────────────
+
+    private void OpenInviteModal(FamilyViewModel family)
+    {
+        _inviteTargetFamily = family;
+        _inviteEmail        = string.Empty;
+        _lookedUpUser       = null;
+        _inviteError        = null;
+        _showInviteModal    = true;
+    }
+
+    private void CloseInviteModal()
+    {
+        _showInviteModal    = false;
+        _inviteTargetFamily = null;
+        _inviteEmail        = string.Empty;
+        _lookedUpUser       = null;
+        _inviteError        = null;
+    }
+
+    private async Task LookupUser()
+    {
+        if (string.IsNullOrWhiteSpace(_inviteEmail)) return;
+
+        _isSaving    = true;
+        _inviteError = null;
+        _lookedUpUser = null;
+
+        try
+        {
+            var result = await Api.LookupUserByEmailAsync(_inviteEmail.Trim());
+            if (result is null)
+                _inviteError = "No user found with that email.";
+            else
+                _lookedUpUser = result;
+        }
+        catch (Exception ex)
+        {
+            _inviteError = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConfirmInvite()
+    {
+        if (_lookedUpUser is null || _inviteTargetFamily is null) return;
+
+        _isSaving    = true;
+        _inviteError = null;
+
+        try
+        {
+            await Api.AddMemberAsync(_inviteTargetFamily.Id, _lookedUpUser.Id);
+            CloseInviteModal();
+            await LoadFamilies();
+        }
+        catch (Exception ex)
+        {
+            _inviteError = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    // ── View models (map from whatever your DTOs look like) ──────────────────
+
+    private class FamilyViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Role { get; set; } = "";
+        public List<MemberViewModel> Members { get; set; } = new();
+    }
+
+    private class MemberViewModel
+    {
+        public int UserId { get; set; }
+        public string DisplayName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Role { get; set; } = "";
+    }
+
+    @* UserLookupDto comes from EpicPetEMR.Shared.Models *@
+}

@@ -54,15 +54,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
-
             ValidateIssuer = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
-
             ValidateAudience = true,
             ValidAudience = builder.Configuration["Jwt:Audience"],
-
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(1)
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = ctx =>
+            {
+                Console.WriteLine($"[JWT FAILED] Path: {ctx.Request.Path} | {ctx.Exception.GetType().Name}: {ctx.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = ctx =>
+            {
+                Console.WriteLine($"[JWT OK] User: {ctx.Principal?.Identity?.Name}");
+                return Task.CompletedTask;
+            },
+            OnMessageReceived = ctx =>
+{
+    var header = ctx.Request.Headers["Authorization"].ToString();
+    Console.WriteLine($"[JWT RAW RECEIVED] '{header}'");
+    return Task.CompletedTask;
+},
         };
     });
 
@@ -70,13 +87,18 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Middleware order matters
-app.UseHttpsRedirection();
+Console.WriteLine($"[DEBUG] JWT Key: {app.Configuration["Jwt:Key"]}");
+Console.WriteLine($"[DEBUG] JWT Issuer: {app.Configuration["Jwt:Issuer"]}");
+Console.WriteLine($"[DEBUG] JWT Audience: {app.Configuration["Jwt:Audience"]}");
+
+// Middleware pipeline
 app.UseCors();
 app.UseStaticFiles();
-
 app.UseAuthentication();
 app.UseAuthorization();
+
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 
 app.MapControllers();
 
