@@ -15,7 +15,7 @@ builder.Services.AddTransient<AuthHeaderHandler>();
 
 // Authenticated HttpClient
 builder.Services.AddHttpClient("AuthenticatedClient", client =>
-    client.BaseAddress = new Uri("http://petchanceemr.chelseyshort.com/"))
+    client.BaseAddress = new Uri("https://petchanceemr.chelseyshort.com/"))
     .AddHttpMessageHandler<AuthRedirectHandler>()
     .AddHttpMessageHandler<AuthHeaderHandler>();
 
