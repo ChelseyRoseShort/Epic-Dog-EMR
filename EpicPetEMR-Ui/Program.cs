@@ -9,12 +9,14 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Register the auth handler
+// Register the auth handlers
+builder.Services.AddTransient<AuthRedirectHandler>();
 builder.Services.AddTransient<AuthHeaderHandler>();
 
-// Authenticated HttpClient — all API services use this
+// Authenticated HttpClient
 builder.Services.AddHttpClient("AuthenticatedClient", client =>
-    client.BaseAddress = new Uri("http://localhost:5001/"))
+    client.BaseAddress = new Uri("http://petchanceemr.chelseyshort.com/"))
+    .AddHttpMessageHandler<AuthRedirectHandler>()
     .AddHttpMessageHandler<AuthHeaderHandler>();
 
 // API services

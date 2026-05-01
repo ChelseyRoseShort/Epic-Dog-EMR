@@ -11,7 +11,7 @@ public static class PetMapper
         Name = p.Name,
         Breed = p.Breed,
         Species = p.Species.ToString(),
-        Sex = p.Sex.ToString(),
+        Sex = Enum.TryParse<Sex>(p.Sex.ToString(), true, out var sex) ? sex : Sex.Unknown,
         Weight = p.Weight,
         ProfilePic = p.ProfilePic,
         WeightUnit = p.WeightUnit?.ToString(),
@@ -26,7 +26,7 @@ public static class PetMapper
     public static Pet ToEntity(this PetDto dto)
     {
         Enum.TryParse<Species>(dto.Species, true, out var species);
-        Enum.TryParse<Sex>(dto.Sex, true, out var sex);
+        var sex = dto.Sex;
         Enum.TryParse<WeightUnit>(dto.WeightUnit, true, out var weightUnit);
 
         return new Pet
@@ -39,9 +39,7 @@ public static class PetMapper
             Weight = dto.Weight,
             WeightUnit = weightUnit,
             DateOfBirth = dto.DateOfBirth,
-            FamilyId = dto.Family?.Id,
-
-            
+            FamilyId = dto.FamilyId ?? dto.Family?.Id,
             ProfilePic = dto.ProfilePic ?? ""
         };
     }

@@ -1,5 +1,7 @@
 using EpicPetEMR.Api.Data;
 using EpicPetEMR.Api.Models;
+using EpicPetEMR.Mappers;
+using EpicPetEMR.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +26,38 @@ public class FamiliesController : ControllerBase
     private int GetUserId() =>
         int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    [HttpGet("with-pets")]
+    public async Task<IActionResult> GetMyFamiliesWithPets()
+    {
+        var userId = GetUserId();
+        var memberships = await _db.FamilyMemberships
+            .Where(m => m.UserId == userId)
+            .Include(m => m.Family)
+                .ThenInclude(f => f.Memberships)
+                    .ThenInclude(m => m.User)
+            .Include(m => m.Family)
+                .ThenInclude(f => f.Pets)
+            .ToListAsync(); // ← pull from DB first
+
+        var result = memberships.Select(m => new
+        {
+            m.Family.Id,
+            m.Family.Name,
+            m.Role,
+            m.CreatedUtc,
+            Members = m.Family.Memberships.Select(fm => new
+            {
+                fm.UserId,
+                fm.User.DisplayName,
+                fm.User.Email,
+                fm.Role
+            }),
+            Pets = m.Family.Pets.Select(p => p.ToDto()) // ← now safe to call in memory
+        });
+
+        return Ok(result);
+    }
+
     // ─── GET api/families ────────────────────────────────────────────────────
     /// <summary>Returns all families the current user is a member of.</summary>
     [HttpGet]
@@ -31,11 +65,17 @@ public class FamiliesController : ControllerBase
     {
         var userId = GetUserId();
 
+        
+
         var families = await _db.FamilyMemberships
             .Where(m => m.UserId == userId)
             .Include(m => m.Family)
-                .ThenInclude(f => f.Memberships)
-                    .ThenInclude(m => m.User)
+            .ThenInclude(f => f.Memberships)
+            .ThenInclude(m => m.User)
+            .Include(m => m.Family)
+            .ThenInclude(f => f.Pets)
+                    
+                       
             .Select(m => new
             {
                 m.Family.Id,
@@ -48,6 +88,22 @@ public class FamiliesController : ControllerBase
                     fm.User.DisplayName,
                     fm.User.Email,
                     fm.Role
+                }),
+                Pets = m.Family.Pets.Select(p => new
+                {
+                    p.Id,
+                    p.FamilyId,
+                    p.Name,
+                    p.ProfilePic,
+                    p.Species,
+                    p.Sex,
+                    p.Breed,
+                    p.DateOfBirth,
+                    p.Weight,
+                    p.WeightUnit,
+                    p.Appointments,
+                    p.Attachments,
+                    p.MedicalHistory
                 })
             })
             .ToListAsync();
@@ -89,6 +145,34 @@ public class FamiliesController : ControllerBase
             }),
             Pets = f.Pets.Select(p => new { p.Id, p.Name }) // expand as needed
         });
+    }
+
+    // GET api/families/{id}/pets
+    [HttpGet("{id:int}/pets")]
+    public async Task<IActionResult> GetFamilyPets(int id)
+    {
+        var userId = GetUserId();
+
+        // Make sure the user is actually a member of this family
+        var membership = await _db.FamilyMemberships
+            .FirstOrDefaultAsync(m => m.FamilyId == id && m.UserId == userId);
+
+        if (membership is null)
+            return NotFound();
+
+        var pets = await _db.Pets
+            .Where(p => p.FamilyId == id)
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.Species,
+                p.Breed,
+                p.ProfilePic
+            })
+            .ToListAsync();
+
+        return Ok(pets);
     }
 
     // ─── POST api/families ───────────────────────────────────────────────────

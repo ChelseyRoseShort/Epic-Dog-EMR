@@ -513,41 +513,98 @@ html, body {
         box-shadow: none;
     }
 
-/* Modal */
+/* ── Unified Modal System ─────────────────────────────────────────────────
+   .modal-overlay   → full-screen backdrop (all modals)
+   .modal-container → white dialog box (MAR / Families inline modals)
+   .modal-box       → white dialog box (AddMedication / AddVetTrip / Form)
+   .modal-backdrop  → alias for .modal-overlay used by delete confirms
+   .modal-content   → white dialog box used by delete confirms
+   All use fixed centering, scroll on small screens, no magic offsets.
+   ──────────────────────────────────────────────────────────────────────── */
 
-.modal-overlay {
+.modal-overlay,
+.modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.55);
+    background: rgba(72, 58, 115, 0.65);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 40;
+    z-index: 1000;
+    padding: 1rem;
+    overflow-y: auto;
 }
 
-.modal-container {
-    width: min(480px, 100% - 2rem);
-    background: #ffffff;
+.modal-container,
+.modal-box,
+.modal-content {
+    width: min(520px, 100%);
+    background: #1e1858;
+    color: #fff;
     border-radius: 1rem;
-    padding: 1.5rem 1.75rem;
-    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.45), 0 0 0 1px rgba(148, 163, 184, 0.3);
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.5), 0 0 0 1px rgba(107, 95, 180, 0.4);
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.15s ease-out;
+}
+
+/* header strip */
+.modal-box .modal-header,
+.modal-content .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    border-radius: 1rem 1rem 0 0;
+}
+
+.modal-box .modal-header h3,
+.modal-content .modal-header h4,
+.modal-container h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* body */
+.modal-box .modal-body,
+.modal-content .modal-body {
+    padding: 1.25rem 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
 }
 
-    .modal-container h3 {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #0f172a;
-    }
+/* container variant (MAR / Families — no explicit header element) */
+.modal-container {
+    padding: 1.5rem 1.75rem;
+    gap: 0.75rem;
+}
 
-    .modal-container p {
-        margin: 0;
-        font-size: 0.9rem;
-        color: #64748b;
-    }
+.modal-container p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7);
+}
+
+/* footer */
+.modal-box .modal-footer,
+.modal-content .modal-footer {
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    border-radius: 0 0 1rem 1rem;
+}
+
+/* warning variant (delete confirm) */
+.modal-content .modal-header.warning {
+    background: rgba(255,80,80,0.15);
+    color: #fca5a5;
+}
 
 .hold-textarea {
     margin-top: 0.4rem;
@@ -568,6 +625,60 @@ html, body {
         box-shadow: 0 0 0 1px #1d4ed8, 0 0 0 4px rgba(59, 130, 246, 0.25);
         background: #ffffff;
     }
+
+/* inputs/selects/labels inside purple modals */
+.modal-box .modal-body input,
+.modal-box .modal-body select,
+.modal-box .modal-body textarea,
+.modal-box .modal-body .form-control,
+.modal-box .modal-body .form-select,
+.modal-container input,
+.modal-container select,
+.modal-container textarea,
+.modal-container .form-control,
+.modal-container .form-select {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    border-radius: 6px;
+}
+
+.modal-box .modal-body input::placeholder,
+.modal-box .modal-body textarea::placeholder,
+.modal-container input::placeholder,
+.modal-container textarea::placeholder {
+    color: rgba(255,255,255,0.45);
+}
+
+.modal-box .modal-body input:focus,
+.modal-box .modal-body select:focus,
+.modal-box .modal-body textarea:focus,
+.modal-container input:focus,
+.modal-container select:focus,
+.modal-container textarea:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.6);
+    box-shadow: 0 0 0 3px rgba(107,95,180,0.4);
+    background: rgba(255,255,255,0.18);
+}
+
+.modal-box .modal-body label,
+.modal-box .modal-body .form-label,
+.modal-container label {
+    color: rgba(255,255,255,0.85);
+}
+
+.modal-box .modal-body option,
+.modal-container option {
+    background: #1e1858;
+    color: #fff;
+}
+
+.hold-textarea {
+    background: rgba(255,255,255,0.12) !important;
+    border-color: rgba(255,255,255,0.25) !important;
+    color: #fff !important;
+}
 
 .modal-buttons {
     margin-top: 0.75rem;
@@ -703,9 +814,121 @@ html, body {
     align-items: start;
 }
 
+.photo-card {
+    max-width:250px
+}
+.edit-buttons-container{
+    left:-63px;
+}
+/* ── Mobile: pet profile & pets table ── */
 @media (max-width: 768px) {
+    .profile-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .edit-buttons-container {
+        left: 0;
+    }
+
+    /* sidebar stacks above content (photo/actions first) */
     .profile-grid {
+        display: flex;
+        flex-direction: column;
         grid-template-columns: 1fr;
+    }
+
+    .pet-profile-container {
+        padding: 0.75rem !important;
+    }
+
+    /* tables scroll horizontally instead of breaking layout */
+    .table-scroll-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+
+    .content {
+        max-width: 100vw !important;
+        overflow-x: hidden;
+    }
+
+    .pet-page-pet {
+        justify-content: center;
+    }
+}
+
+/* ── Mobile: avatar tab ── */
+@media (max-width: 640px) {
+    .avatar-container {
+        width: calc(100vw - 1.5rem) !important;
+        height: calc(100vw - 1.5rem) !important;
+        transform: none !important;
+        right: 0 !important;
+        overflow: hidden;
+    }
+
+    .avatar-main {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* ── Mobile: modals go full-width, body scrolls ── */
+@media (max-width: 560px) {
+    .modal-overlay,
+    .modal-backdrop {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .modal-container,
+    .modal-box,
+    .modal-content {
+        width: 100%;
+        border-radius: 1rem 1rem 0 0;
+        max-height: 90dvh;
+        overflow-y: auto;
+    }
+}
+
+/* ── Mobile: form grids collapse to single column ── */
+@media (max-width: 560px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .full-width {
+        grid-column: span 1;
+    }
+
+    .mar-page-container {
+        padding: 1rem 0.75rem;
+    }
+
+    .mar-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .mar-actions .epic-pet-button {
+        width: 100%;
+    }
+
+    .modal-container {
+        width: 95vw !important;
+        padding: 1rem !important;
+    }
+
+    .pet-profile-container {
+        padding: 0.5rem !important;
+    }
+
+    /* shift selector on Brain page */
+    .shift-row {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 
@@ -833,7 +1056,7 @@ html, body {
 
 .form-input, .form-select {
     width: 100%;
-    padding: 0.6rem;
+    padding: -1.4rem;
     border: 1px solid var(--border);
     border-radius: 4px;
     font-size: 1rem;
@@ -896,52 +1119,8 @@ html, body {
     box-sizing: border-box;
 }
 
-/* --- Simple Modal Overlay (For Delete) --- */
-.modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    padding: 0;
-    border-radius: var(--radius);
-    width: 90%;
-    max-width: 400px;
-    box-shadow: var(--shadow);
-}
-
-.modal-header.warning {
-    background: #fff4f4;
-    color: var(--danger);
-    padding: 1rem;
-    border-top-left-radius: var(--radius);
-    border-top-right-radius: var(--radius);
-}
-
-.modal-header h4 {
-    margin: 0;
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
-
-.modal-footer {
-    padding: 1rem;
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    border-top: 1px solid var(--border);
-}
+/* modal-backdrop / modal-content / modal-header / modal-body / modal-footer
+   are all defined in the Unified Modal System block above */
 
 .btn-danger {
     background-color: var(--danger);
@@ -1275,77 +1454,48 @@ code {
     font-weight: 700;
 }
 
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* dark background */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000; /* stays above everything */
-}
-
-.modal-box {
-    background: white;
-    background-color: white !important;
-    padding: 20px;
-    width: 320px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    animation: fadeIn 0.15s ease-out;
-}
-
-.modal-buttons {
-    margin-top: 15px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-.modal-backdrop {
-    background: unset !important;
-    left: 28%;
-    color: white;
-    top:40px;
-}
-
-.modal-box {
-    background-color: #1e1858 !important;
-    color: white !important;
-    width: 392px;
-}
+/* modal-overlay / modal-box / modal-backdrop defined in Unified Modal System above */
 
 .close-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
+    background: none;
     border: none;
-    transition: background 0.2s ease, transform 0.1s ease;
-    text-decoration: none;
-    user-select: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    padding: 0 4px;
+    border-radius: 4px;
 }
 
-.btn-confirm, .btn-cancel {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 14px;
+.close-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+.btn-confirm {
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     border: none;
-    transition: background 0.2s ease, transform 0.1s ease;
-    text-decoration: none;
-    user-select: none;
+    background: linear-gradient(135deg, #6b5fb4, #483a73);
+    color: #fff;
+    transition: opacity 0.15s;
 }
+
+.btn-confirm:hover { opacity: 0.88; }
+
+.btn-cancel {
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    transition: background 0.15s;
+}
+
+.btn-cancel:hover { background: rgba(255,255,255,0.18); }
 
 .med-row {
     gap: 9px;
@@ -1366,7 +1516,7 @@ code {
     font-size: 1rem;
     font-weight: 600;
     color: #fff;
-    background: linear-gradient(135deg, #3a69f8, #274bd4);
+    background: linear-gradient(135deg, #6b5fb4, #483a73);
     border: none;
     border-radius: 10px;
     cursor: pointer;
@@ -1379,7 +1529,7 @@ code {
 }
 
     .epic-pet-button:hover {
-        background: linear-gradient(135deg, #4a7aff, #3357e6);
+        background: linear-gradient(135deg, #7c70c8, #5a4a8a);
         transform: translateY(-2px);
         box-shadow: 0 6px 14px rgba(0,0,0,0.22);
     }
@@ -1407,7 +1557,7 @@ code {
 
 .med-icon {
     font-size: 1.4rem;
-    color: #3a69f8;
+    color: #6b5fb4;
 }
 .med-line {
     margin: 4px 0;
@@ -1427,7 +1577,7 @@ code {
     align-items: center;
     gap: 10px;
     padding: 0.6rem 1.2rem;
-    background: linear-gradient(135deg, #3a69f8, #274bd4);
+    background: linear-gradient(135deg, #6b5fb4, #483a73);
     color: #fff;
     font-weight: 600;
     font-size: 1rem;
@@ -1441,7 +1591,7 @@ code {
 
     /* Hover */
     .epic-pet-file-upload:hover {
-        background: linear-gradient(135deg, #4a7aff, #3357e6);
+        background: linear-gradient(135deg, #7c70c8, #5a4a8a);
         transform: translateY(-2px);
         box-shadow: 0 6px 14px rgba(0,0,0,0.22);
     }
@@ -1518,11 +1668,29 @@ button {
     to { opacity: 1; transform: scale(1); }
 }
 
-/* Smaller screens */
-@media (max-width: 800px) {
+/* Medium screens: shrink grid columns but keep grid layout */
+@media (max-width: 800px) and (min-width: 641px) {
     .board {
         --cell: 64px;
         --left-col: 180px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
-    .task { display: none; } /* show dots only on small screens */
+
+    .task {
+        display: none;
+    }
+
+    .cell {
+        min-height: 48px;
+        font-size: 0.75rem;
+    }
+
+    .task-badge {
+        display: none;
+    }
+
+    .task-icon {
+        opacity: 1 !important;
+    }
 }

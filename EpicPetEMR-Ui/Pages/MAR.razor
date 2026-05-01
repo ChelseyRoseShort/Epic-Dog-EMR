@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using EpicPetEMR_Ui.Modals
 @inject PetApi Api
+@inject NavigationManager Nav
 
 @if (isLoading)
 {
@@ -203,6 +204,7 @@ else
            @foreach (var history in _marHistory)
         {
             <div class="mar-med-content">
+                <h3>History</h3>
           
                 <p class="mar-med-details">
                    @allmeds.FirstOrDefault(x => x.Id == history.MedId)?.Name
@@ -217,9 +219,9 @@ else
                 </div>
                 }
                 else {
+                        
                       <div class="mar-med-meta">
                     <span class="mar-chip mar-chip-primary">
-                       
                         @history.TimeRecorded
                     </span>
                 </div>
@@ -349,6 +351,7 @@ else
 
         _selectedMeds.Clear();
         await LoadMarPageData();
+        Nav.NavigateTo("/");
     }
 
     private async Task LoadGivenForPastYear()
@@ -396,5 +399,6 @@ else
         CloseHoldModal();
 
         await LoadGivenForPastYear();
+        Nav.NavigateTo("/");
     }
 }

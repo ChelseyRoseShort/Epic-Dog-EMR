@@ -1,7 +1,8 @@
 @page "/pets"
 @using EpicPetEMR_Ui.Services
-@using EpicPetEMR.Shared.Models   
+@using EpicPetEMR.Shared.Models
 @using Microsoft.AspNetCore.Components.Forms
+@using EpicPetEMR_Ui.Components
 @inject PetApi Api
 
 @if (isPageDataLoading)
@@ -13,162 +14,153 @@ else
 {
     if (petCurrentlyBeingEdited is not null)
     {
-
-        
-
         <EditForm Model="@petDraftBeingEdited" OnValidSubmit="@SaveChangesAsync">
             <DataAnnotationsValidator />
             <ValidationSummary />
-            <table class="table">
+
+            <!-- Mobile edit card (shown ≤640px) -->
+            <div class="pet-edit-card-mobile">
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <InputText class="form-control" @bind-Value="petDraftBeingEdited.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Species</label>
+                    <InputText class="form-control" @bind-Value="petDraftBeingEdited.Species" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Breed</label>
+                    <InputText class="form-control" @bind-Value="petDraftBeingEdited.Breed" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Sex</label>
+                    <InputSelect class="form-select" @bind-Value="petDraftBeingEdited.Sex" TValue="Sex">
+                        @foreach (var s in Enum.GetValues<Sex>())
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Weight</label>
+                    <div class="d-flex gap-2">
+                        <InputNumber class="form-control" @bind-Value="petDraftBeingEdited.Weight" />
+                        <InputSelect @bind-Value="petDraftBeingEdited.WeightUnit" TValue="string" class="form-select" style="width:90px;flex-shrink:0;">
+                            <option value="kg">kg</option>
+                            <option value="lbs">lbs</option>
+                        </InputSelect>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Birthday</label>
+                    <BirthdatePicker @bind-Value="petDraftBeingEdited.DateOfBirth" />
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-success btn-sm">Save</button>
+                    <button type="button" class="btn btn-secondary btn-sm" @onclick="CancelEdit">Cancel</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => DeletePet(petCurrentlyBeingEdited)">Delete</button>
+                </div>
+            </div>
+
+            <!-- Desktop edit table (hidden ≤640px) -->
+            <div class="table-scroll-wrapper pet-table-desktop">
+            <table class="table pet-table">
                 <thead>
                     <tr>
-                        <th>Pet test  </th>
+                        <th>Name</th>
                         <th>Species</th>
                         <th>Breed</th>
                         <th>Sex</th>
                         <th>Weight</th>
-                         <th></th>
+                        <th></th>
                         <th>Birthday</th>
-                        
-                        <th style="width:180px;"></th>
+                        <th>Family</th>
+                        <th style="width:200px;"></th>
                     </tr>
                 </thead>
                 <tbody>
-              @foreach (var currentPet in petsLoadedFromApi)
-{
-    if (object.ReferenceEquals(currentPet, petCurrentlyBeingEdited))
-    {
-        <!-- Edit row -->
-        <tr>
-            <td>
-                <InputText class="form-control" @bind-Value="petDraftBeingEdited.Name" />
-            </td>
-
-            <td>
-                <InputText class="form-control" @bind-Value="petDraftBeingEdited.Species" />
-            </td>
-
-            <td>
-                <InputText class="form-control" @bind-Value="petDraftBeingEdited.Breed" />
-            </td>
-
-            <td>
-                <InputText class="form-control" @bind-Value="petDraftBeingEdited.Sex" />
-            </td>
-
-            <td>
-                <InputNumber style="width:120px;" class="form-control" @bind-Value="petDraftBeingEdited.Weight" />
-            </td>
-
-            <td>
-                <div class="input-group">
-         <InputSelect @bind-Value="petDraftBeingEdited.WeightUnit" TValue="string"
-             class="form-select unit-select" style="width:75px;">
-    <option value="kg">kg</option>
-    <option value="lbs">lbs</option>
-</InputSelect>
-
-                </div>
-            </td>
-
-            <td>
-                <InputDate DateFormat="MM/dd/yyyy"
-                           class="form-control"
-                           @bind-Value="petDraftBeingEdited.DateOfBirth" />
-            </td>
-
-          
-                <td class="edit-buttons-container" style="
-              
-              
-                display: flex;
-             
-             
-                justify-content: center;
-                align-items: center;
-                gap: 0px;
-            ">
-                <button type="submit" class="btn btn-success btn-sm me-2">Save</button>
-
-                <button type="button" class="btn btn-secondary btn-sm" @onclick="CancelEdit">
-                    Cancel
-                </button>
-
-                <button type="button"
-                        class="btn btn-outline-danger btn-sm"
-                        style="position: relative; right: -9px;"
-                        @onclick="() => ConfirmDeletePet(currentPet)">
-                    Delete
-                </button>
-            </td>
-           
-
-          
-        </tr>
-                            @if (deleteconfirm)
-                            {
-                                <div class="modal-overlay">
-        <div class="modal-box">
-            <h4>Delete @PetToDelete?.Name?</h4>
-            <p>Are you sure you want to delete this pet?</p>
-
-            <div class="modal-buttons">
-                <button class="btn btn-danger" @onclick="async () => await DeletePet(PetToDelete!)">Delete</button>
-                <button class="btn btn-secondary"  @onclick="() => deleteconfirm = false">Cancel</button>
-            </div>
-        </div>
-    </div>
-                            }
-    } 
-    else
-    {
-        <!-- View row -->
-        <tr>
-            <td class="view-row">
-                <a href="petprofile/@currentPet.Id">@currentPet.Name</a>
-            </td>
-
-            <td>@currentPet.Species</td>
-            <td>@currentPet.Breed</td>
-            <td>@currentPet.Sex</td>
-
-            <td>
-                @(currentPet.Weight is null 
-                    ? "-" 
-                    : $"{currentPet.Weight} {currentPet.WeightUnit}")
-            </td>
-
-            <td>@(currentPet.DateOfBirth?.ToString("MM/dd/yyyy") ?? "")</td>
-
-            <td>@currentPet.Family?.Name</td>
-
-            <td>
-                <button class="btn btn-primary btn-sm"
-                        @onclick="() => EnableEdit(currentPet)">
-                    Edit
-                </button>
-            </td>
-        </tr>
-    }
-}
-
+                    @foreach (var currentPet in petsLoadedFromApi)
+                    {
+                        if (object.ReferenceEquals(currentPet, petCurrentlyBeingEdited))
+                        {
+                            <tr>
+                                <td><InputText class="form-control" @bind-Value="petDraftBeingEdited.Name" /></td>
+                                <td><InputText class="form-control" @bind-Value="petDraftBeingEdited.Species" /></td>
+                                <td><InputText class="form-control" @bind-Value="petDraftBeingEdited.Breed" /></td>
+                                <td>
+                                    <InputSelect class="form-control" @bind-Value="petDraftBeingEdited.Sex" TValue="Sex">
+                                        @foreach (var s in Enum.GetValues<Sex>())
+                                        {
+                                            <option value="@s">@s</option>
+                                        }
+                                    </InputSelect>
+                                </td>
+                                <td><InputNumber style="width:90px;" class="form-control" @bind-Value="petDraftBeingEdited.Weight" /></td>
+                                <td>
+                                    <InputSelect @bind-Value="petDraftBeingEdited.WeightUnit" TValue="string" style="width:75px;" class="form-select">
+                                        <option value="kg">kg</option>
+                                        <option value="lbs">lbs</option>
+                                    </InputSelect>
+                                </td>
+                                <td><BirthdatePicker @bind-Value="petDraftBeingEdited.DateOfBirth" /></td>
+                                <td>@petDraftBeingEdited.Family?.Name</td>
+                                <td>
+                                    <button type="submit" class="btn btn-success btn-sm me-1">Save</button>
+                                    <button type="button" class="btn btn-secondary btn-sm me-1" @onclick="CancelEdit">Cancel</button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => DeletePet(currentPet)">Delete</button>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td><a href="petprofile/@currentPet.Id">@currentPet.Name</a></td>
+                                <td>@currentPet.Species</td>
+                                <td>@currentPet.Breed</td>
+                                <td>@currentPet.Sex</td>
+                                <td>@(currentPet.Weight is null ? "-" : $"{currentPet.Weight} {currentPet.WeightUnit}")</td>
+                                <td>@(currentPet.DateOfBirth?.ToString("MM/dd/yyyy") ?? "")</td>
+                                <td>@currentPet.Family?.Name</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" @onclick="() => EnableEdit(currentPet)">Edit</button>
+                                </td>
+                            </tr>
+                        }
+                    }
                 </tbody>
             </table>
+            </div>
         </EditForm>
+
+        <style>
+            .pet-edit-card-mobile {
+                display: none;
+                background: #fff;
+                border: 1px solid #e3e3e3;
+                border-radius: 12px;
+                padding: 16px;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            }
+            @@media (max-width: 640px) {
+                .pet-edit-card-mobile { display: block; }
+                .pet-table-desktop    { display: none; }
+            }
+        </style>
     }
     else
     {
-       
-        <td><button class="btn btn-primary btn-sm" @onclick="() => OpenAddPetForm()">Add Pet</button></td>
+        <div style="margin-bottom:0.75rem;">
+            <button class="btn btn-primary btn-sm" @onclick="() => OpenAddPetForm()">Add Pet</button>
+        </div>
+
         @if (showform)
         {
-            <EditForm Model="newPet" OnValidSubmit="AddPet">
+            <EditForm Model="newPet" OnValidSubmit="AddPet" style="margin-bottom:1.5rem;">
                 <div class="mb-3">
                     <label>Name:</label>
                     <InputText class="form-control" @bind-Value="newPet.Name" />
                 </div>
-
-                 <div class="mb-3">
+                <div class="mb-3">
                     <label>Species:</label>
                     <InputSelect class="form-select" @bind-Value="newPet.Species">
                         <option value="">Select...</option>
@@ -176,36 +168,26 @@ else
                         <option>Cat</option>
                     </InputSelect>
                 </div>
-
                 <div class="mb-3">
                     <label>Breed:</label>
                     <InputText class="form-control" @bind-Value="newPet.Breed" />
                 </div>
-
-               
-
                 <div class="mb-3">
-                
-                     <label>Sex:</label>
-    <InputSelect class="form-select" @bind-Value="newPet.Sex">
-
-                     @foreach (var value in Enum.GetValues<Sex>())
-                    {
-                      <option value="@value">@value</option>
-                    }
+                    <label>Sex:</label>
+                    <InputSelect class="form-select" @bind-Value="newPet.Sex">
+                        <option value="">Select...</option>
+                        <option>Male</option>
+                        <option>Female</option>
                     </InputSelect>
                 </div>
-
                 <div class="mb-3">
                     <label>Birthday</label>
-                    <InputDate DateFormat="MM/dd/yyyy" class="form-control" @bind-Value="newPet.DateOfBirth" />
+                    <BirthdatePicker @bind-Value="newPet.DateOfBirth" />
                 </div>
-
                 <div class="mb-3">
                     <label>Weight:</label>
                     <InputNumber class="form-control" @bind-Value="newPet.Weight" />
                 </div>
-
                 <div class="mb-3">
                     <label>Weight Unit:</label>
                     <InputSelect class="form-select" @bind-Value="newPet.WeightUnit">
@@ -214,20 +196,72 @@ else
                         <option value="kg">kg</option>
                     </InputSelect>
                 </div>
-
                 <button class="btn btn-primary" type="submit">Save Pet</button>
             </EditForm>
 
             @if (submitted)
             {
-                <div class="alert alert-success mt-3">
-                    Pet submitted successfully!
-                    <h1>@petInfo</h1>
-                </div>
+                <div class="alert alert-success mt-3">Pet submitted successfully!</div>
             }
         }
 
-        <table class="table">
+        <!-- Mobile card list (shown ≤640px) -->
+        <div class="pet-card-list">
+            @foreach (var currentPet in petsLoadedFromApi)
+            {
+                var picM = currentPet.ProfilePic ?? "";
+                var photoUrlM = picM.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                    ? picM
+                    : $"http://petchanceemr.chelseyshort.com/{picM}";
+                <div class="pet-card-mobile">
+                    <div class="pcm-left">
+                        @if (!string.IsNullOrEmpty(currentPet.ProfilePic))
+                        {
+                            <img src="@photoUrlM" class="pcm-photo" alt="@currentPet.Name" />
+                        }
+                        else
+                        {
+                            <div class="pcm-photo-placeholder">
+                                <i class="fa-solid fa-paw"></i>
+                            </div>
+                        }
+                    </div>
+                    <div class="pcm-body">
+                        <a href="petprofile/@currentPet.Id" class="pcm-name">@currentPet.Name</a>
+                        <div class="pcm-chips">
+                            @if (!string.IsNullOrEmpty(currentPet.Species))
+                            {
+                                <span class="pcm-chip">@currentPet.Species</span>
+                            }
+                            @if (!string.IsNullOrEmpty(currentPet.Breed))
+                            {
+                                <span class="pcm-chip pcm-chip-muted">@currentPet.Breed</span>
+                            }
+                            <span class="pcm-chip pcm-chip-muted">@currentPet.Sex</span>
+                        </div>
+                        <div class="pcm-meta">
+                            @if (currentPet.Weight is not null)
+                            {
+                                <span>@currentPet.Weight @currentPet.WeightUnit</span>
+                            }
+                            @if (currentPet.DateOfBirth is not null)
+                            {
+                                <span>DOB: @currentPet.DateOfBirth.Value.ToString("MM/dd/yyyy")</span>
+                            }
+                            @if (currentPet.Family is not null)
+                            {
+                                <span>@currentPet.Family.Name</span>
+                            }
+                        </div>
+                        <button class="btn btn-primary btn-sm" style="align-self:flex-start;margin-top:4px;" @onclick="() => EnableEdit(currentPet)">Edit</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Desktop table (hidden ≤640px) -->
+        <div class="table-scroll-wrapper pet-table-desktop">
+        <table class="table pet-table">
             <thead>
                 <tr>
                     <th>Pet</th>
@@ -235,149 +269,119 @@ else
                     <th>Breed</th>
                     <th>Sex</th>
                     <th>Weight</th>
-                   
                     <th>DOB</th>
-                    
+                    <th>Family</th>
                     <th style="width:180px;"></th>
                 </tr>
             </thead>
             <tbody>
-            @foreach (var currentPet in petsLoadedFromApi)
-            {
-                <tr> 
-          <td>
-              <div class="pet-page-pet">
-
-@{
-    var pic = currentPet.ProfilePic ?? "";
-
-    var photoUrl = pic.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-        ? pic                                           
-        : $"http://petchanceemr.chelseyshort.com/{pic}";             
-}
-
-@if (!string.IsNullOrEmpty(currentPet.ProfilePic))
-{
-    <img src="@photoUrl"
-         class="pet-prof-pic"
-         style="object-fit:cover;width:50px;height:50px;border:3px solid darkslategray;border-radius:50px;" />
-}
-
-
-
-    <a href="petprofile/@currentPet.Id">@currentPet.Name</a>
-    </div>
-</td>
-
-
-                    <td>@currentPet.Species</td>
-                     <td>@currentPet.Breed</td>
-                    <td>@currentPet.Sex</td>
-                    <td>@(currentPet.Weight is null ? "-" : $"{currentPet.Weight} {currentPet.WeightUnit}")</td>
-                   
-                    <td>@(currentPet.DateOfBirth?.ToString("MM/dd/yyyy") ?? "")</td>
-                
-                    <td>
-                        <button class="btn btn-primary btn-sm" @onclick="() => EnableEdit(currentPet)">Edit</button>
-                    </td>
-                </tr>
-            }
+                @foreach (var currentPet in petsLoadedFromApi)
+                {
+                    var pic = currentPet.ProfilePic ?? "";
+                    var photoUrl = pic.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                        ? pic
+                        : $"http://petchanceemr.chelseyshort.com/{pic}";
+                    <tr>
+                        <td>
+                            <div class="pet-page-pet">
+                                @if (!string.IsNullOrEmpty(currentPet.ProfilePic))
+                                {
+                                    <img src="@photoUrl" class="pet-prof-pic"
+                                         style="object-fit:cover;width:50px;height:50px;border:3px solid darkslategray;border-radius:50px;" />
+                                }
+                                <a href="petprofile/@currentPet.Id">@currentPet.Name</a>
+                            </div>
+                        </td>
+                        <td>@currentPet.Species</td>
+                        <td>@currentPet.Breed</td>
+                        <td>@currentPet.Sex</td>
+                        <td>@(currentPet.Weight is null ? "-" : $"{currentPet.Weight} {currentPet.WeightUnit}")</td>
+                        <td>@(currentPet.DateOfBirth?.ToString("MM/dd/yyyy") ?? "")</td>
+                        <td>@currentPet.Family?.Name</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" @onclick="() => EnableEdit(currentPet)">Edit</button>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
-        
+        </div>
 
-    <style>
-    .unit-select select {
-        width:140px;
+        <style>
+            .unit-select select { width: 120px; }
 
-    }
+            .pet-card-list {
+                display: none;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .pet-card-mobile {
+                display: flex;
+                gap: 12px;
+                padding: 12px;
+                background: #fff;
+                border: 1px solid #e3e3e3;
+                border-radius: 12px;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+                align-items: flex-start;
+            }
+            .pcm-left { flex-shrink: 0; }
+            .pcm-photo {
+                width: 56px; height: 56px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 3px solid darkslategray;
+            }
+            .pcm-photo-placeholder {
+                width: 56px; height: 56px;
+                border-radius: 50%;
+                border: 3px solid #ccc;
+                background: #f5f5f5;
+                display: flex; align-items: center; justify-content: center;
+                color: #aaa; font-size: 1.4rem;
+            }
+            .pcm-body {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            .pcm-name {
+                font-weight: 700;
+                font-size: 1.05rem;
+                color: #483a73;
+                text-decoration: none;
+            }
+            .pcm-name:hover { text-decoration: underline; }
+            .pcm-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+            .pcm-chip {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 999px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                background: #e8e4f5;
+                color: #483a73;
+            }
+            .pcm-chip-muted { background: #f0f0f0; color: #555; font-weight: 400; }
+            .pcm-meta {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                font-size: 0.78rem;
+                color: #777;
+            }
 
-.done {
-    box-shadow: inset 0 0 0 2px #2ecc71;
-}
-
-
-
-.board {
-    position: relative;        /* ensures sticky works predictably */
-    overflow: auto;            /* you already have this */
-}
-
-
-.header {
-    position: sticky;
-    top: 0;
-    z-index: 6;                
-    background: var(--bg-header);
-    font-weight: 600;
-}
-
-
-.sticky-left {
-    position: sticky;
-    left: 0;
-    z-index: 5;                /* below header, above normal cells */
-    background: var(--bg-sticky);
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-  
-    box-shadow: 1px 0 0 rgba(0,0,0,0.06);
-}
-
-.content {
-    max-width:90vw;
-    overflow:scroll;
-}
-
-
-.corner {
-    position: sticky;
-    top: 0;
-    left: 0;
-    z-index: 7;             
-    background: var(--bg-header);
-    font-weight: 700;
-}
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000; /* stays above everything */
-}
-
-.modal-box {
-    background: white;
-    padding: 20px;
-    width: 320px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    animation: fadeIn 0.15s ease-out;
-}
-
-.modal-buttons {
-    margin-top: 15px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-
-    </style>
+            @@media (max-width: 640px) {
+                .pet-card-list    { display: flex; }
+                .pet-table-desktop { display: none; }
+            }
+        </style>
     }
 }
 
 @code {
- 
+    // ----- State fields with explicit names -----
     private bool isPageDataLoading = true;
     private string? loadErrorMessage;
     private string? petInfo;
@@ -386,23 +390,22 @@ else
     private List<PetDto> petsLoadedFromApi = new();
     private PetDto newPet = new();
     private bool submitted = false;
-    private bool deleteconfirm = false;
-    private PetDto PetToDelete;
 
     private void HandleValidSubmit()
     {
-       
+        // For now, just simulate saving.
+        // Later, we’ll send it to an API or database.
         Console.WriteLine($"New Pet Added: {newPet.Name}, {newPet.Species}");
         petInfo = newPet.Name;
         submitted = true;
     }
-
+    // The pet row currentl  in "edit mode" (reference to the original item in the list)
     private PetDto? petCurrentlyBeingEdited;
 
- 
+    // A separate, editable draft copy of the pet. We only copy it back on Save.
     private PetDto petDraftBeingEdited = new();
 
-
+    // ----- Lifecycle -----
     protected override async Task OnInitializedAsync()
     {
         try
@@ -419,13 +422,11 @@ else
         }
     }
 
-
+    // ----- Commands -----
     private void EnableEdit(PetDto petToEdit)
     {
         petCurrentlyBeingEdited = petToEdit;
-        petDraftBeingEdited = CreateDeepCopyOfPet(petToEdit);
-        if (!string.IsNullOrWhiteSpace(petDraftBeingEdited.WeightUnit))
-            petDraftBeingEdited.WeightUnit = petDraftBeingEdited.WeightUnit.Trim().ToLower();
+        petDraftBeingEdited = CreateDeepCopyOfPet(petToEdit); // work on a copy so Cancel discards changes
     }
     private async Task LoadPetsAsync()
     {
@@ -442,36 +443,26 @@ else
     }
     private void CancelEdit()
     {
-       
+        // Throw away the draft and exit edit mode
         petCurrentlyBeingEdited = null;
         petDraftBeingEdited = new();
         StateHasChanged();
     }
 
-    private void ConfirmDeletePet(PetDto pet)
+    private async Task DeletePet(PetDto petToEdit)
     {
-       
-        PetToDelete = pet;
-        deleteconfirm = true;
-    }
+        petCurrentlyBeingEdited = petToEdit;
 
-    private async Task DeletePet(PetDto pet)
-    {
-        
-         deleteconfirm = false;
 
-        await Api.DeletePet(pet);
-        
+        await Api.DeletePet(petCurrentlyBeingEdited);
         StateHasChanged();
-        petCurrentlyBeingEdited = null;
-        
         await ReloadPetsAsync();
     }
 
-
+    
     private async Task SaveChangesAsync()
     {
-        
+        // Save changes to the API, then copy draft values back into the original list item
         if (petCurrentlyBeingEdited is null)
             return;
 
@@ -479,7 +470,7 @@ else
 
         CopyPetValuesIntoExistingInstance(source: petDraftBeingEdited, destination: petCurrentlyBeingEdited);
 
-        
+        // Exit edit mode
         petCurrentlyBeingEdited = null;
         petDraftBeingEdited = new();
         StateHasChanged();
@@ -491,10 +482,9 @@ else
 
         await Api.AddPetAsync(newPet);
 
-    
+        // Exit edit mode
 
         StateHasChanged();
-        showform = !showform;
         await ReloadPetsAsync();
     }
     private bool showform = false;
@@ -503,26 +493,24 @@ else
     {
         showform = !showform;
     }
- 
+    // ----- Helpers (copy/clone) -----
     private static PetDto CreateDeepCopyOfPet(PetDto source) => new PetDto
     {
         Id = source.Id,
         Name = source.Name,
-        ProfilePic = source.ProfilePic,
         Breed = source.Breed,
         Species = source.Species,
         Sex = source.Sex,
         Weight = source.Weight,
-           WeightUnit = source.WeightUnit?.Trim().ToLower(),
+        WeightUnit = source.WeightUnit,
         DateOfBirth = source.DateOfBirth,
-     
+        // If Family should be editable, consider cloning it as well. For now, keep reference.
         Family = source.Family
     };
 
     private static void CopyPetValuesIntoExistingInstance(PetDto source, PetDto destination)
     {
         destination.Name = source.Name;
-        destination.ProfilePic = source.ProfilePic;
         destination.Breed = source.Breed;
         destination.Species = source.Species;
         destination.Sex = source.Sex;

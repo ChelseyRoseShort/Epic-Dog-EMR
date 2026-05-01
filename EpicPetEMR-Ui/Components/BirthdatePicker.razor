@@ -1,0 +1,191 @@
+﻿@* Usage:
+    <BirthdatePicker @bind-Value="newPet.DateOfBirth" />
+*@
+
+<div class="bdp-wrap">
+    <div class="bdp-fields">
+        <div class="bdp-field">
+            <label class="bdp-label">Month</label>
+            <select class="bdp-select" value="@_month" @onchange="OnMonthChanged">
+                <option value="0">— Month —</option>
+                @for (int m = 1; m <= 12; m++)
+                {
+                    var label = new DateTime(2000, m, 1).ToString("MMMM");
+                    <option value="@m">@label</option>
+                }
+            </select>
+        </div>
+
+        <div class="bdp-field bdp-field--day">
+            <label class="bdp-label">Day</label>
+            <select class="bdp-select" value="@_day" @onchange="OnDayChanged" disabled="@(_month == 0)">
+                <option value="0">— Day —</option>
+                @for (int d = 1; d <= DaysInSelectedMonth; d++)
+                {
+                    <option value="@d">@d</option>
+                }
+            </select>
+        </div>
+
+        <div class="bdp-field">
+            <label class="bdp-label">Year</label>
+            <select class="bdp-select" value="@_year" @onchange="OnYearChanged">
+                <option value="0">— Year —</option>
+                @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 35; y--)
+                {
+                    <option value="@y">@y</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    @if (_approx)
+    {
+        <div class="bdp-approx-note">Approximate date — exact birthday unknown</div>
+    }
+
+    <label class="bdp-approx-toggle">
+        <input type="checkbox" @bind="_approx" />
+        Approximate date
+    </label>
+</div>
+
+<style>
+    .bdp-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .bdp-fields {
+        display: flex;
+        gap: 8px;
+        flex-wrap: nowrap;
+        align-items: flex-end;
+    }
+
+    .bdp-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 2;
+    }
+
+    .bdp-field--day {
+        flex: 1;
+    }
+
+    .bdp-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0;
+    }
+
+    .bdp-select {
+        width: 100%;
+        padding: 7px 10px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        background: white;
+        color: #212529;
+        appearance: auto;
+        cursor: pointer;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .bdp-select:focus {
+        outline: none;
+        border-color: #483a73;
+        box-shadow: 0 0 0 3px rgba(72, 58, 115, 0.15);
+    }
+
+    .bdp-select:disabled {
+        background: #f8f9fa;
+        color: #adb5bd;
+        cursor: not-allowed;
+    }
+
+    .bdp-approx-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: #6c757d;
+        cursor: pointer;
+        user-select: none;
+        width: fit-content;
+    }
+
+    .bdp-approx-toggle input {
+        cursor: pointer;
+        accent-color: #483a73;
+    }
+
+    .bdp-approx-note {
+        font-size: 0.8rem;
+        color: #9b8ec4;
+        font-style: italic;
+    }
+</style>
+
+@code {
+    [Parameter] public DateOnly? Value { get; set; }
+    [Parameter] public EventCallback<DateOnly?> ValueChanged { get; set; }
+
+    private int _month = 0;
+    private int _day = 0;
+    private int _year = 0;
+    private bool _approx = false;
+
+    protected override void OnParametersSet()
+    {
+        if (Value is DateOnly d && _month == 0 && _day == 0 && _year == 0)
+        {
+            _month = d.Month;
+            _day = d.Day;
+            _year = d.Year;
+        }
+    }
+
+    private int DaysInSelectedMonth
+    {
+        get
+        {
+            if (_month == 0) return 31;
+            var year = _year > 0 ? _year : DateTime.Now.Year;
+            return DateTime.DaysInMonth(year, _month);
+        }
+    }
+
+    private async Task OnMonthChanged(ChangeEventArgs e)
+    {
+        _month = int.Parse(e.Value?.ToString() ?? "0");
+        if (_day > DaysInSelectedMonth) _day = DaysInSelectedMonth;
+        await TryEmit();
+    }
+
+    private async Task OnDayChanged(ChangeEventArgs e)
+    {
+        _day = int.Parse(e.Value?.ToString() ?? "0");
+        await TryEmit();
+    }
+
+    private async Task OnYearChanged(ChangeEventArgs e)
+    {
+        _year = int.Parse(e.Value?.ToString() ?? "0");
+        if (_month > 0 && _day > DaysInSelectedMonth) _day = DaysInSelectedMonth;
+        await TryEmit();
+    }
+
+    private async Task TryEmit()
+    {
+        if (_month > 0 && _day > 0 && _year > 0)
+            await ValueChanged.InvokeAsync(new DateOnly(_year, _month, _day));
+        else
+            await ValueChanged.InvokeAsync(null);
+    }
+}

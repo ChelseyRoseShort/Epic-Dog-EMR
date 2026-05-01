@@ -460,13 +460,10 @@
             <p>Loading pet data...</p>
         </div>
     }
-    else if (pet == null)
-    {
-        <div class="error-state">
-            <p>Pet not found.</p>
-            <button @onclick="ReloadPet" class="btn-primary">Try Again</button>
-        </div>
-    }
+else if (pet == null)
+{
+    <div>@(loadError ?? "Pet was null, no error captured")</div>
+}  
     else
     {
         <!-- Profile Header -->
@@ -658,7 +655,7 @@
             {
 
                 <div class="documents-section">
-                <h2>@pet.Name's Documents</h2>
+               
                    <section class="vet-documents-section">
                     <h2>@pet.Name's Veterinary Documents</h2>
 
@@ -756,6 +753,9 @@
                             <button type="button" class="btn-primary" @onclick="()=>ChangeAvatarPicture(AvatarView.Left)">Left</button>
                             <button type="button" class="btn-primary" @onclick="()=>ChangeAvatarPicture(AvatarView.Right)">Right</button>
                 </div>
+                <div class="avatar-main">
+
+               
                 <div class="avatar-container">
                 <img class="avatar-image" src="@CurrentImage" />
                            
@@ -766,7 +766,7 @@
                             
                 </div>
                 </div>
-
+                 </div>
             }
             <style>
             .avatar-container {
@@ -1131,6 +1131,8 @@
     {
         activeTab = tabName;
     }
+   
+    private string? loadError;
     private bool _themeApplied = false;
     private PetDto? pet;
     private List<MedicationDto> meds = new();
@@ -1449,7 +1451,7 @@
     {
         if (!_themeApplied && pet != null)
         {
-            await ApplyPhotoTheme();
+           // await ApplyPhotoTheme();
             _themeApplied = true;
         }
     }
@@ -1464,21 +1466,24 @@
         {
             isLoading = true;
 
-            var petTask = Api.GetPetById(Id);
-            var medsTask = Api.GetMedsById(Id);
-            var petdocs = Api.GetPetDocumentsAsync(Id);
-            var ohnoEvents = Api.GetOhNoEventsById(Id);
-            var findingsCall = Api.GetAvatarById(Id);
-            var medicalHxCall = Api.GetMedicalHistoryById(Id);
-            await Task.WhenAll(petTask, medsTask);
+         var petTask = Api.GetPetById(Id);
+var medsTask = Api.GetMedsById(Id);
+var petdocs = Api.GetPetDocumentsAsync(Id);
+var ohnoEvents = Api.GetOhNoEventsById(Id);
+var findingsCall = Api.GetAvatarById(Id);
+var medicalHxCall = Api.GetMedicalHistoryById(Id);
+var vetTripsTask = Api.GetVetTripsByPet(Id);
 
-            OhNoEvents = await ohnoEvents;
-            findings = await findingsCall;
-            pet = await petTask;
-            meds = await medsTask;
-            petDocuments = await petdocs;
-            medicalhx = await medicalHxCall;
-            vetTrips = await Api.GetVetTripsByPet(Id);
+await Task.WhenAll(petTask, medsTask, petdocs, ohnoEvents, findingsCall, medicalHxCall, vetTripsTask);
+
+pet = await petTask;
+Console.WriteLine(pet);
+meds = await medsTask;
+petDocuments = await petdocs;
+OhNoEvents = await ohnoEvents;
+findings = await findingsCall;
+medicalhx = await medicalHxCall;
+vetTrips = await vetTripsTask;
             docsandVetTrips = petDocuments
                 .Where(d => d.VetTripId.HasValue)
                 .GroupBy(d => d.VetTripId!.Value)
@@ -1492,15 +1497,18 @@
                 _activeImages = avatarCatImageUrls;
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching data: {ex.Message}");
-        }
+ catch (Exception ex)
+{
+    Console.WriteLine($"Error fetching data: {ex.Message}");
+    loadError = ex.Message;
+    // remove the throw
+}
         finally
         {
             isLoading = false;
             activeTab = "Medications";
-            Console.WriteLine("Loaded");
+            Console.WriteLine("Loaded" + pet);
+            
         }
     }
 

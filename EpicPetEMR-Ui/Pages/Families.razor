@@ -37,6 +37,7 @@ else
             {
                 <article class="mar-med-card" style="margin-bottom: 1.5rem;">
                     <div class="mar-med-content" style="width: 100%;">
+
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 class="mar-med-name">@family.Name</h3>
                             <span class="mar-chip mar-chip-primary">@family.Role</span>
@@ -53,6 +54,33 @@ else
                             }
                         </div>
 
+                        <div style="margin-top: 0.75rem;">
+                            <p class="mar-med-details" style="margin-bottom: 0.5rem;">Pets</p>
+                            @if (loadingPets.Contains(family.Id))
+                            {
+                                <p class="mar-med-meta">Loading pets...</p>
+                            }
+                            else if (familyPets.TryGetValue(family.Id, out var pets) && pets.Any())
+                            {
+                                @foreach (var pet in pets)
+                                {
+                                    <div class="mar-med-meta" style="margin-bottom: 0.25rem;">
+                                        <span class="mar-chip mar-chip-muted">@pet.Name</span>
+                                        <span class="mar-chip mar-chip-primary">@pet.Species</span>
+                                        @if (!string.IsNullOrWhiteSpace(pet.Breed))
+                                        {
+                                            <span class="mar-chip mar-chip-muted">@pet.Breed</span>
+                                        }
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="mar-med-meta">No pets in this family yet.</p>
+                            }
+                        </div>
+
+                        @* Only Owner and Admin can invite members *@
                         @if (family.Role == "Owner" || family.Role == "Admin")
                         {
                             <div style="margin-top: 1rem;">
@@ -163,6 +191,12 @@ else
     private bool isLoading = true;
     private string? errorMessage;
 
+    // familyPets: key = family ID, value = that family's list of pets
+    private Dictionary<int, List<FamilyPetDto>> familyPets = new();
+
+    // loadingPets: tracks which families are still fetching pets
+    private HashSet<int> loadingPets = new();
+
     // Create modal
     private bool _showCreateModal = false;
     private string _newFamilyName = string.Empty;
@@ -190,17 +224,19 @@ else
             var raw = await Api.GetMyFamiliesAsync();
             families = raw.Select(f => new FamilyViewModel
             {
-                Id      = f.Id,
-                Name    = f.Name ?? "Unnamed Family",
-                Role    = f.Role,
+                Id = f.Id,
+                Name = f.Name ?? "Unnamed Family",
+                Role = f.Role,
                 Members = f.Members?.Select(m => new MemberViewModel
                 {
-                    UserId      = m.UserId,
+                    UserId = m.UserId,
                     DisplayName = m.DisplayName ?? m.Email ?? "Unknown",
-                    Email       = m.Email ?? "",
-                    Role        = m.Role
+                    Email = m.Email ?? "",
+                    Role = m.Role
                 }).ToList() ?? new()
             }).ToList();
+
+            await Task.WhenAll(families.Select(f => LoadFamilyPets(f.Id)));
         }
         catch (Exception ex)
         {
@@ -214,27 +250,47 @@ else
         }
     }
 
+    private async Task LoadFamilyPets(int familyId)
+    {
+        loadingPets.Add(familyId);
+        try
+        {
+            var pets = await Api.GetFamilyPetsAsync(familyId);
+            familyPets[familyId] = pets;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load pets for family {familyId}: {ex.Message}");
+            familyPets[familyId] = new();
+        }
+        finally
+        {
+            loadingPets.Remove(familyId);
+            StateHasChanged();
+        }
+    }
+
     // ── Create ───────────────────────────────────────────────────────────────
 
     private void OpenCreateModal()
     {
         _newFamilyName = string.Empty;
-        _createError   = null;
+        _createError = null;
         _showCreateModal = true;
     }
 
     private void CloseCreateModal()
     {
         _showCreateModal = false;
-        _newFamilyName   = string.Empty;
-        _createError     = null;
+        _newFamilyName = string.Empty;
+        _createError = null;
     }
 
     private async Task ConfirmCreateFamily()
     {
         if (string.IsNullOrWhiteSpace(_newFamilyName)) return;
 
-        _isSaving    = true;
+        _isSaving = true;
         _createError = null;
 
         try
@@ -259,26 +315,26 @@ else
     private void OpenInviteModal(FamilyViewModel family)
     {
         _inviteTargetFamily = family;
-        _inviteEmail        = string.Empty;
-        _lookedUpUser       = null;
-        _inviteError        = null;
-        _showInviteModal    = true;
+        _inviteEmail = string.Empty;
+        _lookedUpUser = null;
+        _inviteError = null;
+        _showInviteModal = true;
     }
 
     private void CloseInviteModal()
     {
-        _showInviteModal    = false;
+        _showInviteModal = false;
         _inviteTargetFamily = null;
-        _inviteEmail        = string.Empty;
-        _lookedUpUser       = null;
-        _inviteError        = null;
+        _inviteEmail = string.Empty;
+        _lookedUpUser = null;
+        _inviteError = null;
     }
 
     private async Task LookupUser()
     {
         if (string.IsNullOrWhiteSpace(_inviteEmail)) return;
 
-        _isSaving    = true;
+        _isSaving = true;
         _inviteError = null;
         _lookedUpUser = null;
 
@@ -305,7 +361,7 @@ else
     {
         if (_lookedUpUser is null || _inviteTargetFamily is null) return;
 
-        _isSaving    = true;
+        _isSaving = true;
         _inviteError = null;
 
         try
@@ -325,8 +381,10 @@ else
         }
     }
 
-    // ── View models (map from whatever your DTOs look like) ──────────────────
+    // ── View models ──────────────────────────────────────────────────────────
 
+    // Role is now a string because the API returns "Owner", "Admin", etc.
+    // thanks to JsonStringEnumConverter on the backend.
     private class FamilyViewModel
     {
         public int Id { get; set; }
@@ -342,6 +400,4 @@ else
         public string Email { get; set; } = "";
         public string Role { get; set; } = "";
     }
-
-    @* UserLookupDto comes from EpicPetEMR.Shared.Models *@
 }

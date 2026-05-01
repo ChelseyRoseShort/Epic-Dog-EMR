@@ -8,6 +8,8 @@
 		<!-- Correct URL and port -->
 		<DevServerPort>5173</DevServerPort>
 		<DevServerUrl>http://0.0.0.0:5173/</DevServerUrl>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -2,17 +2,63 @@
 @using EpicPetEMR.Shared.Models.Auth
 @inject EpicPetEMR_Ui.Services.AuthApi Auth
 @inject EpicPetEMR_Ui.Services.TokenStore Tokens
+@layout EmptyLayout
+@inject NavigationManager Nav
 
-<h3>Register</h3>
-
+<div style="
+background-color: rebeccapurple;
+border-radius: 40px;
+padding: 60px;
+max-width: 800px;
+margin: auto;">
+    <h3 style="color:aliceblue; padding: 8px;">Create your account <i class="fa-solid fa-dog"></i></h3>
+   
 <div style="max-width: 420px;">
-    <input placeholder="Email" @bind="Model.Email" />
+        <input style="
+               background-color: white;
+               border: 2px solid transparent;
+               margin-bottom: 2px;
+               border-radius: 6px;" placeholder="Email" @bind="Model.Email" />
     <br />
-    <input placeholder="Password" type="password" @bind="Model.Password" />
+        <input style="
+               background-color: white;
+               border: 2px solid transparent;
+                margin-bottom: 2px;
+               border-radius: 6px;" placeholder="Password" type="password" @bind="Model.Password" />
     <br />
-    <input placeholder="Family name" @bind="Model.FamilyName" />
+        <input style="
+               background-color: white;
+              
+               
+               border: 2px solid ;
+               border-radius: 6px;" placeholder="Family name" @bind="Model.FamilyName" />
     <br />
-    <button @onclick="DoRegister">Create account</button>
+        <button @onclick="DoRegister" style="
+        background-color: mediumslateblue;
+        color: white;
+        border: 2px solid white;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 15px;
+        ">
+            Create account
+        </button>
+    <br />
+        <button @onclick='() => Nav.NavigateTo("/login")' style="
+        background-color: mediumslateblue;
+        color: white;
+        border: 2px solid white;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 15px;
+        margin-left: 8px;">
+        Back to login
+    </button>
+</div>
 </div>
 
 @if (!string.IsNullOrWhiteSpace(Message))
@@ -31,14 +77,9 @@
         try
         {
             var res = await Auth.RegisterAsync(Model);
-
-            // Updated: TokenStore uses SetTokenAsync (not SetAsync)
             await Tokens.SetTokenAsync(res.Token);
-
-            // Optional but useful for UI display
             await Tokens.SetEmailAsync(Model.Email);
-
-            Message = "Registered. Token saved to localStorage.";
+            Nav.NavigateTo("/");
         }
         catch (Exception ex)
         {

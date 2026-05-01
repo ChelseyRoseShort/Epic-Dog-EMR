@@ -1,6 +1,13 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@using Microsoft.AspNetCore.Components.Routing
+@using EpicPetEMR_Ui.Services
+@inject TokenStore Tokens
+@inject NavigationManager Nav
+
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+        
+        </RouteView>
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
@@ -10,3 +17,19 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code
+{protected override async Task
+    
+    OnInitializedAsync()
+    {
+        var token = await Tokens.GetTokenAsync();
+        var currentUrl = Nav.Uri;
+        var isOnPublicPage = currentUrl.Contains("/login") || currentUrl.Contains("/register");
+
+            if(string.IsNullOrWhiteSpace(token) && !isOnPublicPage) 
+            {
+                Nav.NavigateTo("/login");
+            }
+    }
+}
