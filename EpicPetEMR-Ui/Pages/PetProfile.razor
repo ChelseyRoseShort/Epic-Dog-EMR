@@ -545,13 +545,14 @@ else if (pet == null)
                     <div class="med-card">
                                 <div class="med-card-header">
                                     <h3><i></i> @hx.Diagnosis </h3>
-                                    <span style="font-size:12px;" class="med-dose">Diagnosed: @(hx.DiagnosedOn?.ToString("MM/dd/yyyy") ?? "")
- </span>
+                                   
                                 </div>
                                 <div class="med-card-body">
                                    
                               
                                     <p class="med-instructions">@hx.Notes</p>
+                                     <span style="font-size:12px;" class="med-dose">Diagnosed: @(hx.DiagnosedOn?.ToString("MM/dd/yyyy") ?? "")
+ </span>
                                 </div>
                               
                                     </div>
@@ -583,7 +584,7 @@ else if (pet == null)
                             <div class="med-card">
                                 <div class="med-card-header">
                                     <h3><i class="fa-solid fa-pills"></i> @med.Name</h3>
-                                    <span class="med-dose">@med.DoseValue @med.DoseType</span>
+                                    
                                 </div>
                                 <div class="med-card-body">
                                     <div class="detail-row">
@@ -593,6 +594,7 @@ else if (pet == null)
                                             <span>Freq:</span> <strong> @addspaces(med.Frequency.ToString())</strong>
                                     </div>
                                     <p class="med-instructions">@med.Instructions</p>
+                                    <span class="med-dose">@med.DoseValue @med.DoseType</span>
                                 </div>
                                 <div class="med-card-footer">
                                     <button @onclick="() => ConfirmDelete(med)"

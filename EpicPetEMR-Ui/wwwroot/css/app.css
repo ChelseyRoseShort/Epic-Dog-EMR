@@ -2,12 +2,69 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+
+/* EDIT HERE */
+.top-row {
+    -webkit-box-shadow: 0px 10px 13px -7px #000000, 5px 5px 15px 5px rgba(0, 0, 0, 0);
+
+      
+border-bottom: 0 !important;
+}
+
+.emr-dark {
+
+        height: 94px;
+}
+
+.navbar-brand {
+    color: #b79f2d !important;
+    background-color: white;
+    padding:20px;
+    text-align: center;
+    border-radius:0px 0px 20px 20px;
+    position: relative;
+    bottom:25px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bolder;
+      -webkit-box-shadow: 0px 10px 13px -7px #000000, 5px 5px 15px 5px rgba(0, 0, 0, 0);
+}
+
+.sidebar {
+    webkit-box-shadow: 10px 0px 13px -7px #000000, -7px 21px 21px 11px rgba(0, 0, 0, 0);
+    box-shadow: 10px 0px 13px -7px #000000, -7px 21px 21px 11px rgba(0, 0, 0, 0);
+}
+
+.signed-in-button {
+    border: 2px solid #b79f2d;
+                background-color: #b79f2d;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-left: 8px;
+            margin-bottom: 0px;
+}
+.btn-primary:active {
+    background-color: #193020 !important;
+}
+.btn-primary:focus {
+    outline:#193020 !important;
+    border-color: white !important;
+  box-shadow: 0 0 0 .25rem rgb(3 104 16 / 50%) !important;
+    
+}
+.btn-primary:focus {
+    background-color:#193020 !important;
+}
+/* END */
+
 :root {
-    --pet-primary: #6aa3ff; /* default fallback */
-    --pet-primary-dark: #3c6fc4;
-    --pet-primary-light: #a7c7ff;
-    --primary: #0078d4;
-    --primary-hover: #005a9e;
+    --pet-primary: #112818; /* default fallback */
+    --pet-primary-dark: white;
+    --pet-primary-light: #112818;
+    --primary: #193020;
+    --primary-hover: #193020 !important;
     --danger: #d13438;
     --danger-hover: #a80000;
     --surface: #ffffff;
@@ -18,6 +75,7 @@ html, body {
     --radius: 8px;
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
 
 /* Mar Page*/
 /* Container for the vet docs section */
@@ -225,9 +283,9 @@ html, body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
+    background: #a8a17a;
+    color: #eed91a;
+    border: 1px solid #ecd77a;
 }
 
 .mar-title {
@@ -261,7 +319,7 @@ html, body {
     border-radius: 999px;
     font-size: 0.85rem;
     font-weight: 500;
-    background: linear-gradient(135deg, #1d4ed8, #22c55e);
+    background: linear-gradient(135deg,  #d8bc1d, #133f23);
     color: #ffffff;
 }
 
@@ -363,14 +421,14 @@ html, body {
     border-radius: 0.35rem;
     border: 1.8px solid #cbd5f5;
     background: #f8fafc;
-    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.3);
+    box-shadow: inset 0 0 0 1px rgba(224, 236, 166, 0.3);
     position: relative;
 }
 
 .mar-checkbox:checked + .mar-checkbox-custom {
-    border-color: #1d4ed8;
-    background: #1d4ed8;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+    border-color: #c2c523;
+    background: #c2c523;
+    box-shadow: 0 0 0 3px rgba(221, 235, 146, 0.25);
 }
 
     .mar-checkbox:checked + .mar-checkbox-custom::after {
@@ -429,14 +487,14 @@ html, body {
 }
 
 .mar-chip-primary {
-    background: #e0f2fe;
-    color: #0369a1;
-    border: 1px solid #bae6fd;
+    background: #e4db60;
+    color: #fcfbfa;
+    border: 1px solid #ebdc87;
 }
 
 .mar-chip-muted {
-    background: #f1f5f9;
-    color: #475569;
+    background: #87a58c;
+    color: #eaf0ec;
     border: 1px solid #e2e8f0;
 }
 
@@ -479,7 +537,7 @@ html, body {
     font-weight: 600;
     border: none;
     cursor: pointer;
-    background: linear-gradient(135deg, #1d4ed8, #22c55e);
+    background: linear-gradient(135deg, #d8bc1d, #133f23);
     color: #ffffff;
     display: inline-flex;
     align-items: center;
@@ -526,7 +584,7 @@ html, body {
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(72, 58, 115, 0.65);
+    background: rgba(33, 77, 53, 0.65);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -539,7 +597,7 @@ html, body {
 .modal-box,
 .modal-content {
     width: min(520px, 100%);
-    background: #1e1858;
+    background: #0e2817;
     color: #fff;
     border-radius: 1rem;
     box-shadow: 0 20px 50px rgba(15, 23, 42, 0.5), 0 0 0 1px rgba(107, 95, 180, 0.4);
@@ -1379,6 +1437,8 @@ code {
 .active-tab {
     background-color: var(--pet-primary-dark);
     color: var(--pet-primary-light);
+    -webkit-box-shadow: 0px 10px 13px -7px #000000, 5px 5px 15px 5px rgba(0, 0, 0, 0);
+    box-shadow: 0px 0px 13px -7px #000000, 1px 1px 28px -19px rgba(0, 0, 0, 0);
 }
 .button-plain {
     background: none;
@@ -1476,9 +1536,12 @@ code {
     font-weight: 600;
     cursor: pointer;
     border: none;
-    background: linear-gradient(135deg, #6b5fb4, #483a73);
+    background: linear-gradient(135deg, #efde62, #185338);
     color: #fff;
     transition: opacity 0.15s;
+}
+#isActive {
+    accent-color: #b79f2d !important;
 }
 
 .btn-confirm:hover { opacity: 0.88; }
@@ -1524,12 +1587,12 @@ code {
     align-items: center;
     justify-content: center;
     letter-spacing: .3px;
-    transition: all 0.25s ease;
+    transition: all 1s ease;
     box-shadow: 0 3px 8px rgba(0,0,0,0.18);
 }
 
     .epic-pet-button:hover {
-        background: linear-gradient(135deg, #7c70c8, #5a4a8a);
+        background: linear-gradient(135deg, #113b1a, #1c945c);
         transform: translateY(-2px);
         box-shadow: 0 6px 14px rgba(0,0,0,0.22);
     }
