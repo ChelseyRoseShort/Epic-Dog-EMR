@@ -153,17 +153,14 @@ else
 
         <style>
             .pet-edit-card-mobile {
-                display: none;
+                display: block;
                 background: #fff;
                 border: 1px solid #e3e3e3;
                 border-radius: 12px;
                 padding: 16px;
                 box-shadow: 0 1px 4px rgba(0,0,0,0.07);
             }
-            @@media (max-width: 640px) {
-                .pet-edit-card-mobile { display: block; }
-                .pet-table-desktop    { display: none; }
-            }
+            .pet-table-desktop { display: none; }
         </style>
     }
     else
@@ -340,9 +337,12 @@ else
             .unit-select select { width: 120px; }
 
             .pet-card-list {
-                display: none;
-                flex-direction: column;
+                display: grid;
+                grid-template-columns: 1fr;
                 gap: 10px;
+            }
+            @@media (min-width: 641px) {
+                .pet-card-list { grid-template-columns: 1fr 1fr; }
             }
             .pet-card-mobile {
                 display: flex;
@@ -400,11 +400,7 @@ else
                 font-size: 0.78rem;
                 color: #777;
             }
-
-            @@media (max-width: 640px) {
-                .pet-card-list    { display: flex; }
-                .pet-table-desktop { display: none; }
-            }
+            .pet-table-desktop { display: none; }
         </style>
     }
 }
@@ -462,9 +458,7 @@ else
     private async Task LoadPetsAsync()
     {
         isPageDataLoading = true;
-
         petsLoadedFromApi = await Api.GetAllPetsAsync();
-
         isPageDataLoading = false;
     }
 
@@ -510,11 +504,9 @@ else
 
     private async Task AddPet()
     {
-
         await Api.AddPetAsync(newPet);
-
-        // Exit edit mode
-
+        showform = false;
+        newPet = new();
         StateHasChanged();
         await ReloadPetsAsync();
     }
