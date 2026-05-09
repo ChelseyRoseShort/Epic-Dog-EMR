@@ -1557,7 +1557,7 @@ vetTrips = await vetTripsTask;
     {
         newMedication = new MedicationDto
         {
-            StartDate = DateTime.Today.AddHours(8),
+            StartDate = DateOnly.FromDateTime(DateTime.Today),
             IsActive = true
         };
         isAddMedOpen = true;
