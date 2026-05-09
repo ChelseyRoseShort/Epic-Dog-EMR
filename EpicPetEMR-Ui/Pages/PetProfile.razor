@@ -526,9 +526,20 @@ else if (pet == null)
 
                     <div class="upload-control">
                         <label class="btn-outline-secondary btn-full-width">
-                            <i class="fa-solid fa-camera"></i> Change Photo
-                            <InputFile OnChange="UploadPhoto" accept="image/*" hidden />
+                            @if (uploadingPhoto)
+                            {
+                                <i class="fa-solid fa-spinner fa-spin"></i> <span>Uploading…</span>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-camera"></i> <span>Change Photo</span>
+                            }
+                            <InputFile OnChange="UploadPhoto" accept="image/*" hidden disabled="@uploadingPhoto" />
                         </label>
+                        @if (uploadError != null)
+                        {
+                            <div class="upload-error">@uploadError</div>
+                        }
                     </div>
                 </div>
                 <button class="btn-primary" @onclick="OpenAddMedModal">
@@ -1642,9 +1653,16 @@ vetTrips = await vetTripsTask;
         
     }
 
+    private bool uploadingPhoto = false;
+    private string? uploadError = null;
+
     private async Task UploadPhoto(InputFileChangeEventArgs e)
     {
         if (pet == null) return;
+
+        uploadingPhoto = true;
+        uploadError = null;
+        StateHasChanged();
 
         try
         {
@@ -1654,12 +1672,20 @@ vetTrips = await vetTripsTask;
                 pet = updatedPet;
                 await Task.Delay(50);
                 await ApplyPhotoTheme();
-                StateHasChanged();
+            }
+            else
+            {
+                uploadError = "Upload failed. Please try again.";
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Upload failed: {ex.Message}");
+            uploadError = $"Upload failed: {ex.Message}";
+        }
+        finally
+        {
+            uploadingPhoto = false;
+            StateHasChanged();
         }
     }
 

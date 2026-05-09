@@ -1848,3 +1848,10 @@ button {
         opacity: 1 !important;
     }
 }
+
+.upload-error {
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: #e05c5c;
+    text-align: center;
+}

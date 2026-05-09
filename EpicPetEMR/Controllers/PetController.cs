@@ -5,6 +5,9 @@ using EpicPetEMR.Mappers;
 using EpicPetEMR.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
 
 namespace EpicPetEMR.Api.Controllers;
 
@@ -110,11 +113,15 @@ public class PetController : BaseController
         var uploadsFolder = Path.Combine(_env.ContentRootPath, "wwwroot", "petphotos");
         Directory.CreateDirectory(uploadsFolder);
 
-        var safeFilename = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+        var safeFilename = $"{Guid.NewGuid()}.jpg";
         var fullPath = Path.Combine(uploadsFolder, safeFilename);
 
-        using var stream = new FileStream(fullPath, FileMode.Create);
-        await file.CopyToAsync(stream);
+        using var inputStream = file.OpenReadStream();
+        using var image = await Image.LoadAsync(inputStream);
+        image.Mutate(x => x.AutoOrient());
+        if (image.Width > 1600)
+            image.Mutate(x => x.Resize(1600, 0));
+        await image.SaveAsJpegAsync(fullPath, new JpegEncoder { Quality = 85 });
 
         pet.ProfilePic = $"/petphotos/{safeFilename}";
         await _db.SaveChangesAsync();
