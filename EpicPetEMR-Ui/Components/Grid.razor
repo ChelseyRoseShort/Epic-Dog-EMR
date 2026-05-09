@@ -35,11 +35,11 @@
 
             @if (hasFinding)
             {
-                <span class="finding-icon @GetGroupIconClass(finding.Type)" style="color:#706496;"></span>
+                <span class="finding-icon @GetGroupIconClass(finding.Type)" style="color:var(--pet-primary);"></span>
             <div class="hover-finding"> 
                     <div class="med-card">
                         <div class="med-card-header">
-                            <h3><i class="fa-solid fa-staff-snake fa-lg" style="color: #6a4cc2;"></i>
+                            <h3><i class="fa-solid fa-staff-snake fa-lg" style="color: white;"></i>
                             @finding.CreatedAtUtc.ToLocalTime().ToString("g")
                     
                             </h3>
@@ -136,8 +136,7 @@ z-index:5;
     height:480px;
 }
 .med-card-header{
-    background: lightgrey;
-    background-color: lightgrey;
+ 
 }
 .grid{
         transform: rotateX(360deg);
