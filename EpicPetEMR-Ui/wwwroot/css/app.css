@@ -4,6 +4,141 @@ body {
 }
 
 
+/* ── Login page ── */
+.login-card {
+    background-color: #0c331c;
+    border-radius: 16px;
+    padding: 40px 28px 32px;
+    width: 420px;
+    max-width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+}
+
+.login-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.login-paw-icon {
+    font-size: 3.5rem;
+    color: #bbb826;
+    filter: drop-shadow(0 0 14px rgba(187,184,38,0.45));
+}
+
+.login-app-name {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #bbb826;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.login-subtitle {
+    color: white;
+    text-align: center;
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.login-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.1);
+    background-color: rgba(255,255,255,0.95);
+    font-size: 15px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.login-input:focus {
+    border-color: #bbb826;
+}
+
+.login-btn-primary {
+    width: 100%;
+    padding: 13px;
+    margin-top: 4px;
+    background-color: #bbb826;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: filter 0.2s, transform 0.1s;
+}
+
+.login-btn-primary:hover {
+    filter: brightness(1.1);
+}
+
+.login-btn-primary:active {
+    transform: scale(0.98);
+}
+
+.login-error {
+    color: #ff6b6b;
+    text-align: center;
+    margin: 0;
+    font-size: 14px;
+}
+
+.login-register {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.login-register span {
+    color: rgba(255,255,255,0.65);
+    font-size: 14px;
+}
+
+.login-btn-secondary {
+    background: transparent;
+    color: #bbb826;
+    border: 2px solid #bbb826;
+    padding: 9px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.login-btn-secondary:hover {
+    background-color: rgba(187,184,38,0.12);
+}
+
+@media (max-width: 576px) {
+    .login-card {
+        border-radius: 0;
+        width: 100vw;
+        min-height: 100vh;
+        padding: 0 24px;
+        justify-content: center;
+        box-shadow: none;
+    }
+}
+
 /* EDIT HERE */
 .top-row {
     -webkit-box-shadow: 0px 10px 13px -7px #000000, 5px 5px 15px 5px rgba(0, 0, 0, 0);
