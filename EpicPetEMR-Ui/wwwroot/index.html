@@ -18,11 +18,22 @@
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
+        <div class="app-splash">
+            <div class="app-splash-inner">
+                <div class="app-splash-logo">🐾</div>
+                <div class="app-splash-title">PetChance EMR</div>
+                <div class="app-splash-bar-track">
+                    <div class="app-splash-bar-fill"></div>
+                </div>
+                <div class="app-splash-pct"></div>
+            </div>
+        </div>
+        <!-- kept hidden so Blazor can write --blazor-load-percentage to :root -->
+        <svg class="loading-progress" style="display:none;">
             <circle r="40%" cx="50%" cy="50%" />
             <circle r="40%" cx="50%" cy="50%" />
         </svg>
-        <div class="loading-progress-text"></div>
+        <div class="loading-progress-text" style="display:none;"></div>
     </div>
 
     <div id="blazor-error-ui">
