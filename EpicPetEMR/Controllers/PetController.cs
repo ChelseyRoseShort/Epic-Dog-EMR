@@ -100,7 +100,7 @@ public class PetController : BaseController
     // POST /api/pet/{id}/profilepic
     [HttpPost("{id:int}/profilepic")]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(10 * 1024 * 1024)]
+    [RequestSizeLimit(100 * 1024 * 1024)]
     public async Task<IActionResult> UploadProfilePic(int id, IFormFile file)
     {
         var pet = await _db.Pets.FindAsync(id);

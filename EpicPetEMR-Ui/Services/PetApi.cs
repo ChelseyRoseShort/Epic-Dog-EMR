@@ -61,7 +61,7 @@ public sealed class PetApi
     public async Task<PetDto?> UploadPetPhoto(int id, IBrowserFile file)
     {
         using var content = new MultipartFormDataContent();
-        var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+        var stream = file.OpenReadStream(maxAllowedSize: 100 * 1024 * 1024);
         content.Add(new StreamContent(stream), "file", file.Name);
 
         var response = await _http.PostAsync($"api/pet/{id}/profilepic", content);
