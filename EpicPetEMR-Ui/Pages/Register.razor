@@ -6,59 +6,82 @@
 @inject NavigationManager Nav
 
 <div style="
-background-color: rebeccapurple;
-border-radius: 40px;
-padding: 60px;
-max-width: 800px;
+background-color: #0c331c;
+border-radius: 12px;
+padding: 30px 15px 20px 15px;
+max-width: 600px;
+max-height: 800px;
+box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 margin: auto;">
-    <h3 style="color:aliceblue; padding: 8px;">Create your account <i class="fa-solid fa-dog"></i></h3>
-   
-<div style="max-width: 420px;">
-        <input style="
+    <h2 style="color: aliceblue; background:white; color:black;
+    padding:20px;text-align:center;
+    border-radius:0px 0px 20px 20px;position:relative;bottom:40px; margin-bottom:0px;">
+        PetChance EMR <i style="display:none;" class="fa-solid fa-dog"></i>
+    </h2>
+
+    <h3 style="color: aliceblue; text-align:center; margin-top:-1rem;">Create your account</h3>
+
+    <div style="max-width: 420px; display:flex; justify-content:center; align-items:center; flex-direction:column;">
+        <input style=" margin-top:1rem;
+               width:100%;
                background-color: white;
                border: 2px solid transparent;
                margin-bottom: 2px;
                border-radius: 6px;" placeholder="Email" @bind="Model.Email" />
-    <br />
-        <input style="
+        <br />
+
+        <input style=" margin-top:-15px;
+               width:100%;
                background-color: white;
                border: 2px solid transparent;
-                margin-bottom: 2px;
+               margin-bottom: 2px;
                border-radius: 6px;" placeholder="Password" type="password" @bind="Model.Password" />
-    <br />
-        <input style="
+        <br />
+
+        <input style=" margin-top:-15px;
+               width:100%;
                background-color: white;
-              
-               
-               border: 2px solid ;
+               border: 2px solid transparent;
+               margin-bottom: -30px;
                border-radius: 6px;" placeholder="Family name" @bind="Model.FamilyName" />
-    <br />
+        <br />
+
         <button @onclick="DoRegister" style="
-        background-color: mediumslateblue;
+        background-color: rgb(187, 184, 38);
         color: white;
-        border: 2px solid white;
+        border: 2px solid rgb(22, 54, 23);
         padding: 10px 24px;
         border-radius: 6px;
         font-weight: bold;
         cursor: pointer;
         font-size: 15px;
-        ">
+        width:100%;
+        margin-left: 8px;">
             Create account
         </button>
+    </div>
+
     <br />
+
+    <div style="max-width: 420px;">
+        <h2 style="color: rgb(248, 248, 248);font-size:15px; margin-bottom:-0.5rem;margin-left:10px;">
+            Already have an account?
+        </h2>
+
         <button @onclick='() => Nav.NavigateTo("/login")' style="
-        background-color: mediumslateblue;
+        margin-bottom:-2rem;
+        background-color: rgb(187, 184, 38);
         color: white;
-        border: 2px solid white;
+        border: 2px solid rgb(22, 54, 23);
         padding: 10px 24px;
         border-radius: 6px;
         font-weight: bold;
         cursor: pointer;
         font-size: 15px;
         margin-left: 8px;">
-        Back to login
-    </button>
-</div>
+            Back to login
+        </button>
+    </div>
 </div>
 
 @if (!string.IsNullOrWhiteSpace(Message))

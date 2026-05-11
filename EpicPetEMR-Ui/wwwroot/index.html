@@ -17,12 +17,13 @@
 </head>
 
 <body>
-    <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+    <div id="app"></div>
+
+    <div class="app-splash" id="app-splash">
+        <div class="app-splash-inner">
+            <i class="fa-solid fa-paw app-splash-icon"></i>
+            <div class="app-splash-title">PetChance EMR</div>
+        </div>
     </div>
 
     <div id="blazor-error-ui">
@@ -30,7 +31,37 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>
+        (function () {
+            var MIN_MS = 2200;
+            var timerDone = false;
+            var blazorDone = false;
+
+            function tryHide() {
+                if (!timerDone || !blazorDone) return;
+                var el = document.getElementById('app-splash');
+                if (el) el.classList.add('app-splash-hide');
+            }
+
+            // Minimum display time — never hide before this
+            setTimeout(function () { timerDone = true; tryHide(); }, MIN_MS);
+
+            // Detect when Blazor has actually rendered content into #app
+            var app = document.getElementById('app');
+            var observer = new MutationObserver(function () {
+                if (app.childElementCount > 0) {
+                    blazorDone = true;
+                    observer.disconnect();
+                    tryHide();
+                }
+            });
+            observer.observe(app, { childList: true });
+
+            // Start Blazor immediately so it loads in parallel with the timer
+            Blazor.start();
+        })();
+    </script>
 </body>
 
 </html>

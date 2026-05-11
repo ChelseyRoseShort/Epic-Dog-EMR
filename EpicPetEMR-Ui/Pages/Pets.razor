@@ -4,10 +4,51 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using EpicPetEMR_Ui.Components
 @inject PetApi Api
+@inject FamilyApi FamilyService
 
 @if (isPageDataLoading)
 {
-    <p>Loading pets…</p>
+    <div class="pet-card-list">
+        @for (int i = 0; i < 4; i++)
+        {
+            <div class="pet-card-mobile skel-card">
+                <div class="skel-circle"></div>
+                <div class="skel-body">
+                    <div class="skel-line skel-name"></div>
+                    <div class="skel-chips">
+                        <div class="skel-chip"></div>
+                        <div class="skel-chip skel-chip-sm"></div>
+                    </div>
+                    <div class="skel-line skel-meta"></div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <style>
+        @@keyframes shimmer {
+            0%   { background-position: -400px 0; }
+            100% { background-position:  400px 0; }
+        }
+        .skel-card { pointer-events: none; }
+        .skel-circle, .skel-line, .skel-chip {
+            background: linear-gradient(90deg, #ececec 25%, #f8f8f8 50%, #ececec 75%);
+            background-size: 800px 100%;
+            animation: shimmer 1.4s infinite linear;
+            border-radius: 6px;
+        }
+        .skel-circle {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .skel-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .skel-name  { height: 16px; width: 45%; }
+        .skel-meta  { height: 12px; width: 70%; }
+        .skel-chips { display: flex; gap: 6px; }
+        .skel-chip    { height: 18px; width: 60px; border-radius: 999px; }
+        .skel-chip-sm { width: 45px; }
+    </style>
 }
 
 else
@@ -54,6 +95,16 @@ else
                 <div class="mb-3">
                     <label class="form-label">Birthday</label>
                     <BirthdatePicker @bind-Value="petDraftBeingEdited.DateOfBirth" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Family</label>
+                    <InputSelect class="form-select" @bind-Value="petDraftBeingEdited.FamilyId" TValue="int?">
+                        <option value="">-- None --</option>
+                        @foreach (var f in familiesForUser)
+                        {
+                            <option value="@f.Id">@f.Name</option>
+                        }
+                    </InputSelect>
                 </div>
                 <div class="d-flex gap-2 flex-wrap">
                     <button type="submit" class="btn btn-success btn-sm">Save</button>
@@ -103,7 +154,15 @@ else
                                     </InputSelect>
                                 </td>
                                 <td><BirthdatePicker @bind-Value="petDraftBeingEdited.DateOfBirth" /></td>
-                                <td>@petDraftBeingEdited.Family?.Name</td>
+                                <td>
+                                    <InputSelect class="form-select" @bind-Value="petDraftBeingEdited.FamilyId" TValue="int?">
+                                        <option value="">-- None --</option>
+                                        @foreach (var f in familiesForUser)
+                                        {
+                                            <option value="@f.Id">@f.Name</option>
+                                        }
+                                    </InputSelect>
+                                </td>
                                 <td>
                                     <button type="submit" class="btn btn-success btn-sm me-1">Save</button>
                                     <button type="button" class="btn btn-secondary btn-sm me-1" @onclick="CancelEdit">Cancel</button>
@@ -134,17 +193,14 @@ else
 
         <style>
             .pet-edit-card-mobile {
-                display: none;
+                display: block;
                 background: #fff;
                 border: 1px solid #e3e3e3;
                 border-radius: 12px;
                 padding: 16px;
                 box-shadow: 0 1px 4px rgba(0,0,0,0.07);
             }
-            @@media (max-width: 640px) {
-                .pet-edit-card-mobile { display: block; }
-                .pet-table-desktop    { display: none; }
-            }
+            .pet-table-desktop { display: none; }
         </style>
     }
     else
@@ -196,6 +252,16 @@ else
                         <option value="kg">kg</option>
                     </InputSelect>
                 </div>
+                <div class="mb-3">
+                    <label>Family:</label>
+                    <InputSelect class="form-select" @bind-Value="newPet.FamilyId" TValue="int?">
+                        <option value="">-- None --</option>
+                        @foreach (var f in familiesForUser)
+                        {
+                            <option value="@f.Id">@f.Name</option>
+                        }
+                    </InputSelect>
+                </div>
                 <button class="btn btn-primary" type="submit">Save Pet</button>
             </EditForm>
 
@@ -207,13 +273,16 @@ else
 
         <!-- Mobile card list (shown ≤640px) -->
         <div class="pet-card-list">
+            @{ int cardIndex = 0; }
             @foreach (var currentPet in petsLoadedFromApi)
             {
                 var picM = currentPet.ProfilePic ?? "";
                 var photoUrlM = picM.StartsWith("http", StringComparison.OrdinalIgnoreCase)
                     ? picM
                     : $"http://petchanceemr.chelseyshort.com/{picM}";
-                <div class="pet-card-mobile">
+                var delay = $"animation-delay:{cardIndex * 60}ms";
+                cardIndex++;
+                <div class="pet-card-mobile card-enter" style="@delay">
                     <div class="pcm-left">
                         @if (!string.IsNullOrEmpty(currentPet.ProfilePic))
                         {
@@ -310,10 +379,22 @@ else
         <style>
             .unit-select select { width: 120px; }
 
+            @@keyframes cardEnter {
+                from { opacity: 0; transform: translateY(14px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+            .card-enter {
+                opacity: 0;
+                animation: cardEnter 0.35s ease forwards;
+            }
+
             .pet-card-list {
-                display: none;
-                flex-direction: column;
+                display: grid;
+                grid-template-columns: 1fr;
                 gap: 10px;
+            }
+            @@media (min-width: 641px) {
+                .pet-card-list { grid-template-columns: 1fr 1fr; }
             }
             .pet-card-mobile {
                 display: flex;
@@ -349,7 +430,7 @@ else
             .pcm-name {
                 font-weight: 700;
                 font-size: 1.05rem;
-                color: #483a73;
+                color: var(--pet-primary-light);
                 text-decoration: none;
             }
             .pcm-name:hover { text-decoration: underline; }
@@ -360,8 +441,8 @@ else
                 border-radius: 999px;
                 font-size: 0.75rem;
                 font-weight: 600;
-                background: #e8e4f5;
-                color: #483a73;
+            background: var(--pet-primary);
+    color: var(--pet-primary-dark);
             }
             .pcm-chip-muted { background: #f0f0f0; color: #555; font-weight: 400; }
             .pcm-meta {
@@ -371,11 +452,7 @@ else
                 font-size: 0.78rem;
                 color: #777;
             }
-
-            @@media (max-width: 640px) {
-                .pet-card-list    { display: flex; }
-                .pet-table-desktop { display: none; }
-            }
+            .pet-table-desktop { display: none; }
         </style>
     }
 }
@@ -388,6 +465,7 @@ else
     private string weightUnit = "kg";
 
     private List<PetDto> petsLoadedFromApi = new();
+    private List<FamilyDto> familiesForUser = new();
     private PetDto newPet = new();
     private bool submitted = false;
 
@@ -411,6 +489,7 @@ else
         try
         {
             petsLoadedFromApi = await Api.GetAllPetsAsync();
+            familiesForUser = await FamilyService.GetMyFamiliesAsync();
         }
         catch (Exception ex)
         {
@@ -431,9 +510,7 @@ else
     private async Task LoadPetsAsync()
     {
         isPageDataLoading = true;
-
         petsLoadedFromApi = await Api.GetAllPetsAsync();
-
         isPageDataLoading = false;
     }
 
@@ -479,11 +556,9 @@ else
 
     private async Task AddPet()
     {
-
         await Api.AddPetAsync(newPet);
-
-        // Exit edit mode
-
+        showform = false;
+        newPet = new();
         StateHasChanged();
         await ReloadPetsAsync();
     }
@@ -504,7 +579,7 @@ else
         Weight = source.Weight,
         WeightUnit = source.WeightUnit,
         DateOfBirth = source.DateOfBirth,
-        // If Family should be editable, consider cloning it as well. For now, keep reference.
+        FamilyId = source.FamilyId,
         Family = source.Family
     };
 
@@ -517,6 +592,7 @@ else
         destination.Weight = source.Weight;
         destination.WeightUnit = source.WeightUnit;
         destination.DateOfBirth = source.DateOfBirth;
+        destination.FamilyId = source.FamilyId;
         destination.Family = source.Family;
     }
 }

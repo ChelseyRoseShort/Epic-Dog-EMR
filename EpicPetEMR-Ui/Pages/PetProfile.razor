@@ -526,9 +526,20 @@ else if (pet == null)
 
                     <div class="upload-control">
                         <label class="btn-outline-secondary btn-full-width">
-                            <i class="fa-solid fa-camera"></i> Change Photo
-                            <InputFile OnChange="UploadPhoto" accept="image/*" hidden />
+                            @if (uploadingPhoto)
+                            {
+                                <i class="fa-solid fa-spinner fa-spin"></i> <span>Uploading…</span>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-camera"></i> <span>Change Photo</span>
+                            }
+                            <InputFile OnChange="UploadPhoto" accept="image/*" hidden disabled="@uploadingPhoto" />
                         </label>
+                        @if (uploadError != null)
+                        {
+                            <div class="upload-error">@uploadError</div>
+                        }
                     </div>
                 </div>
                 <button class="btn-primary" @onclick="OpenAddMedModal">
@@ -545,13 +556,14 @@ else if (pet == null)
                     <div class="med-card">
                                 <div class="med-card-header">
                                     <h3><i></i> @hx.Diagnosis </h3>
-                                    <span style="font-size:12px;" class="med-dose">Diagnosed: @(hx.DiagnosedOn?.ToString("MM/dd/yyyy") ?? "")
- </span>
+                                   
                                 </div>
                                 <div class="med-card-body">
                                    
                               
                                     <p class="med-instructions">@hx.Notes</p>
+                                     <span style="font-size:12px;" class="med-dose">Diagnosed: @(hx.DiagnosedOn?.ToString("MM/dd/yyyy") ?? "")
+ </span>
                                 </div>
                               
                                     </div>
@@ -583,7 +595,7 @@ else if (pet == null)
                             <div class="med-card">
                                 <div class="med-card-header">
                                     <h3><i class="fa-solid fa-pills"></i> @med.Name</h3>
-                                    <span class="med-dose">@med.DoseValue @med.DoseType</span>
+                                    
                                 </div>
                                 <div class="med-card-body">
                                     <div class="detail-row">
@@ -593,6 +605,7 @@ else if (pet == null)
                                             <span>Freq:</span> <strong> @addspaces(med.Frequency.ToString())</strong>
                                     </div>
                                     <p class="med-instructions">@med.Instructions</p>
+                                    <span class="med-dose">@med.DoseValue @med.DoseType</span>
                                 </div>
                                 <div class="med-card-footer">
                                     <button @onclick="() => ConfirmDelete(med)"
@@ -1544,7 +1557,8 @@ vetTrips = await vetTripsTask;
     {
         newMedication = new MedicationDto
         {
-            StartDate = DateOnly.FromDateTime(DateTime.Now),
+            StartDate = DateOnly.FromDateTime(DateTime.Today),
+            StartTime = new TimeOnly(8, 0),
             IsActive = true
         };
         isAddMedOpen = true;
@@ -1640,9 +1654,16 @@ vetTrips = await vetTripsTask;
         
     }
 
+    private bool uploadingPhoto = false;
+    private string? uploadError = null;
+
     private async Task UploadPhoto(InputFileChangeEventArgs e)
     {
         if (pet == null) return;
+
+        uploadingPhoto = true;
+        uploadError = null;
+        StateHasChanged();
 
         try
         {
@@ -1652,12 +1673,20 @@ vetTrips = await vetTripsTask;
                 pet = updatedPet;
                 await Task.Delay(50);
                 await ApplyPhotoTheme();
-                StateHasChanged();
+            }
+            else
+            {
+                uploadError = "Upload failed. Please try again.";
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Upload failed: {ex.Message}");
+            uploadError = $"Upload failed: {ex.Message}";
+        }
+        finally
+        {
+            uploadingPhoto = false;
+            StateHasChanged();
         }
     }
 

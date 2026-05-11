@@ -201,6 +201,13 @@ else
     </div>
 
        <div class="mar-page-container">
+        @if (_marHistory.FirstOrDefault() is null)
+        {
+            <div>No medication history yet</div>
+        }
+        else {
+
+     
            @foreach (var history in _marHistory)
         {
             <div class="mar-med-content">
@@ -229,6 +236,7 @@ else
               
             </div>
         }
+           }
     </div>
 }
 

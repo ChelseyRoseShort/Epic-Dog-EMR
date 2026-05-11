@@ -80,7 +80,7 @@
                                     }
                                     else
                                     {
-                                        <i class="fa-solid fa-prescription-bottle"></i>
+                                        <i class="fa-solid fa-prescription-bottle" style="color:#193020 !important;"></i>
                                         <span>@string.Join(", ", due.Select(m => m.Name))</span>
                                     }
                                 </button>
@@ -185,7 +185,7 @@
                         else
                         {
                             <div class="task-wrap">
-                                <i class="fa-solid fa-prescription-bottle fa-2xl task-icon" style="color:#483a73"></i>
+                                <i class="fa-solid fa-prescription-bottle fa-2xl task-icon" style="color:#193020 !important;"></i>
                                 <div class="task-badge">
                                     <button class="button-plain" @onclick="() => GoToMAR(p.Pet.Id, h)">
                                         @foreach (var med in dueMeds)
@@ -205,7 +205,7 @@
                         <div class="task-wrap vettrip-wrap">
                             <button class="button-plain vettrip-button"
                                     @onclick="() => GoToVetTrip(p.Pet.Id, h, vetTrips.FirstOrDefault()?.Id ?? 0)">
-                                <i class="fa-solid fa-hospital fa-xl vettrip-icon" style="color:#483a73"></i>
+                                <i class="fa-solid fa-hospital fa-xl vettrip-icon" style="color:#193020"></i>
 
                                 @foreach (var trip in vetTrips)
                                 {
@@ -258,7 +258,7 @@
   .mobile-pet-name {
       font-weight: 700;
       font-size: 1rem;
-      color: #483a73;
+      color: var(--pet-primary);
       text-decoration: none;
   }
 
@@ -315,7 +315,7 @@
   .mobile-task-pill:active { opacity: 0.75; }
 
   .pill-med {
-      background: linear-gradient(135deg, #6b5fb4, #8d82e7);
+      background: linear-gradient(135deg, #385223, #ecd46a);
       color: #fff;
   }
 
@@ -367,12 +367,12 @@
         opacity: 0;
         padding: 6px 12px;
         border-radius: 20px;
-        background: linear-gradient(135deg, #6b5fb4, #8d82e7);
+        background: linear-gradient(135deg, #193020, #345e40);
         color: white;
         font-weight: 600;
         font-size: 0.9rem;
         text-align: center;
-        box-shadow: 0 0 12px rgba(110, 90, 190, 0.7);
+        box-shadow: 0 0 12px rgba(52, 107, 80, 0.7);
         transition: opacity 0.3s ease, transform 0.25s ease;
         white-space: nowrap;
   
