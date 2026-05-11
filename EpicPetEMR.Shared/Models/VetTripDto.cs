@@ -17,5 +17,7 @@ namespace EpicPetEMR.Shared.Models
 
 
         public VetTripReason Reason { get; set; }
+
+        public List<PetDocumentDto> Documents { get; set; } = [];
     }
 }

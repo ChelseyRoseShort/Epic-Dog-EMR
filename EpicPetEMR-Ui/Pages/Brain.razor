@@ -87,14 +87,27 @@
                             }
                             @if (hasVet)
                             {
-                                var trips2 = vetHours![h];
-                                @foreach (var trip in trips2)
+                                List<VetTripDto>? trips2 = vetHours![h];
+                                @foreach (VetTripDto trip in trips2)
                                 {
-                                    <button class="mobile-task-pill pill-vet"
+                                 @if (!trip.Documents.Any())
+                                 {
+                                        <button class="mobile-task-pill pill-vet"
                                             @onclick="() => GoToVetTrip(p.Pet.Id, h, trip.Id)">
                                         <i class="fa-solid fa-hospital"></i>
                                         <span>@(string.IsNullOrEmpty(trip.Hospital) ? "Vet trip" : trip.Hospital)</span>
                                     </button>
+                                 }
+
+                                 @foreach (var doc in trip.Documents)
+                                 {
+                                    <button class="mobile-task-pill pill-vet"
+                                            >
+                                        <i class="fa-solid fa-file-medical"></i>
+                                        <span>@doc.Name</span>
+                                    </button>
+                                 }
+                                   
                                 }
                             }
                         </div>
@@ -325,8 +338,8 @@
   }
 
   .pill-vet {
-      background: #e8eaf6;
-      color: #3949ab;
+    background: linear-gradient(135deg, #385223, #ecd46a);
+    color: #fff;
   }
 
   @@media (max-width: 640px) {

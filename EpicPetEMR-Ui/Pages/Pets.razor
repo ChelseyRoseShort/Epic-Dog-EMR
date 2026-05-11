@@ -3,6 +3,7 @@
 @using EpicPetEMR.Shared.Models
 @using Microsoft.AspNetCore.Components.Forms
 @using EpicPetEMR_Ui.Components
+@using System.Text.RegularExpressions
 @inject PetApi Api
 @inject FamilyApi FamilyService
 
@@ -230,10 +231,11 @@ else
                 </div>
                 <div class="mb-3">
                     <label>Sex:</label>
-                    <InputSelect class="form-select" @bind-Value="newPet.Sex">
-                        <option value="">Select...</option>
-                        <option>Male</option>
-                        <option>Female</option>
+                  <InputSelect class="form-select" @bind-Value="newPet.Sex" TValue="Sex">
+                        @foreach (var s in Enum.GetValues<Sex>())
+                        {
+                            <option value="@s">@addspaces(@s.ToString())</option>
+                        }
                     </InputSelect>
                 </div>
                 <div class="mb-3">
@@ -468,6 +470,15 @@ else
     private List<FamilyDto> familiesForUser = new();
     private PetDto newPet = new();
     private bool submitted = false;
+
+      private static string addspaces(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return input;
+
+        return Regex.Replace(input,
+            @"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])",
+            " ");
+    }
 
     private void HandleValidSubmit()
     {

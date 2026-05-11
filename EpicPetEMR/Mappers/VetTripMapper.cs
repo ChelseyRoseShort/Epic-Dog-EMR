@@ -16,7 +16,8 @@ namespace EpicPetEMR.Api.Mappers
                 Hospital = entity.Hospital,
                 Vet = entity.Vet,
                 VisitDateTime = entity.VisitDateTime,
-                Reason = entity.Reason
+                Reason = entity.Reason,
+                Documents = entity.Documents?.Select(d => d.ToDto()).ToList() ?? []
             };
         }
 

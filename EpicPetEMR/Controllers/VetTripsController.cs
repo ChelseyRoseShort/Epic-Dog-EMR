@@ -23,12 +23,12 @@ namespace EpicPetEMR.Api.Controllers
         public async Task<ActionResult<List<VetTripDto>>> GetByPet(int petId)
         {
             var trips = await _db.VetTrips
+                .Include(v => v.Documents)
                 .Where(v => v.PetId == petId)
                 .OrderByDescending(v => v.VisitDateTime)
-                .Select(v => v.ToDto())
                 .ToListAsync();
 
-            return Ok(trips);
+            return Ok(trips.Select(v => v.ToDto()).ToList());
         }
 
         [HttpGet("today")]
@@ -38,12 +38,12 @@ namespace EpicPetEMR.Api.Controllers
             var tomorrow = today.AddDays(1);
 
             var trips = await _db.VetTrips
+                .Include(v => v.Documents)
                 .Where(v => v.VisitDateTime >= today && v.VisitDateTime < tomorrow)
                 .OrderByDescending(v => v.VisitDateTime)
-                .Select(v => v.ToDto())
                 .ToListAsync();
 
-            return Ok(trips);
+            return Ok(trips.Select(v => v.ToDto()).ToList());
         }
 
         // GET: api/vettrips/5

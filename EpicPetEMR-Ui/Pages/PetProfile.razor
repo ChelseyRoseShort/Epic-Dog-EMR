@@ -7,6 +7,8 @@
 @using System.Reflection
 @using System.Globalization
 @using System.Text.RegularExpressions
+@using System.Text.Json
+@using System.Text.Encodings.Web
 @inject PetApi Api
 @inject IJSRuntime JS
 
@@ -634,20 +636,67 @@ else if (pet == null)
                 <h2>@pet.Name's Oh No Events</h2>
                 @if (OhNoEvents.Any())
                 {
-                   <ul class="oh-no-events-list">
+                 
   @foreach (var e in OhNoEvents)
   {
-    <li class="oh-no-event">
-      <div class="oh-no-event__header">
-        <strong>@e.Type</strong>
-        <span class="oh-no-event__date"> Occurred at: @e.OccurredAt.ToString("MMM d, yyyy h:mm tt")</span>
-      </div>
+
+
+          <div class="med-card">
+                        <div class="med-card-header">
+                            <h3><i class="fa-solid fa-staff-snake fa-lg" style="color: white;"></i>
+                            @e.Type.ToString()
+                    
+                            </h3>
+                        
+                        </div>
+                        <div class="med-card-body">
+                            <div class="detail-row" style="flex-direction:column;">
+                                 @foreach (var prop in e.GetType().GetProperties())
+{
+   object? value = prop.GetValue(e);
+
+   if (value == null)
+   {
+    continue;
+   }
+   if (prop.Name == "Id" || prop.Name == "PetId" || prop.Name == "Type")
+   {
+    continue;
+   }
+
+   if (value is bool b && b == false )
+   {
+    continue;
+   }
+
+   if (value is string s && string.IsNullOrWhiteSpace(s))
+   {
+    continue;
+   }
+
+   <span><strong>@addspaces(prop.Name):</strong> @value.ToString()</span>
+ 
+}
+                               
+                            </div>
+                         
+                           
+                         
+                        </div>
+                        <div class="med-card-footer">
+                     
+                        </div>
+                    </div>
 
       <div class="oh-no-event__details">
-        @if (!string.IsNullOrWhiteSpace(e.Notes))
-        {
-          <div><strong>Notes:</strong> @e.Notes</div>
-        }
+
+  
+@if (!string.IsNullOrWhiteSpace(e.Notes))
+{
+ <div class="notes-test"><strong>Notes :</strong>@e.Notes</div>
+}
+         
+        
 
         @if (e.SeizureDurationSeconds != null)
         {
@@ -657,9 +706,9 @@ else if (pet == null)
 
       
       </div>
-    </li>
+
   }
-</ul>
+
 
                 }
                 </div>
@@ -1447,7 +1496,7 @@ else if (pet == null)
 
     private void OpenPdfPreview(int docId)
     {
-        pdfPreviewUrl = $"https://localhost:5173api/documents/{docId}/preview";
+        pdfPreviewUrl = $"https://petchanceemr.chelseyshort.com/api/documents/{docId}/preview";
     }
 
     private void ClosePdfPreview()
