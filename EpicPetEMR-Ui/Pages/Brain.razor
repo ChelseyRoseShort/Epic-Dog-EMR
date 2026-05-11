@@ -71,12 +71,12 @@
                                 var due = meds2.Where(m => !m.IsCompleted).ToList();
                                 var allDone = due.Count == 0;
 
-                                <button class="mobile-task-pill @(allDone ? "pill-done" : "pill-med")"
+                                <button style="margin-top:3px !important;"  class="mobile-task-pill @(allDone ? "pill-done" : "pill-med")"
                                         @onclick="() => GoToMAR(p.Pet.Id, h)">
                                     @if (allDone)
                                     {
                                         <i class="fa-regular fa-circle-check"></i>
-                                        <span>All done</span>
+                                        <span></span>
                                     }
                                     else
                                     {
@@ -98,15 +98,16 @@
                                         <span>@(string.IsNullOrEmpty(trip.Hospital) ? "Vet trip" : trip.Hospital)</span>
                                     </button>
                                  }
-
-                                 @foreach (var doc in trip.Documents)
-                                 {
-                                    <button class="mobile-task-pill pill-vet"
-                                            >
-                                        <i class="fa-solid fa-file-medical"></i>
-                                        <span>@doc.Name</span>
-                                    </button>
+                                 else {
+                                    /* need a "comeplted vet trip" here */
+                                     <button class="mobile-task-pill pill-done" style="margin-top:3px !important;"
+                                       >
+                                        <i class="fa-regular fa-circle-check"></i>
+                                        <span>All done (@(string.IsNullOrEmpty(trip.Hospital) ? "Vet trip" : trip.Hospital))</span>
+                                        </button>
                                  }
+
+                                
                                    
                                 }
                             }
