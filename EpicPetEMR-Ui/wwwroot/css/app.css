@@ -706,8 +706,8 @@ body {
 
 .mar-page-container .epic-pet-button.epic-pet-button-outlined {
     background: transparent;
-    color: #0f172a;
-    border: 1px solid #cbd5f5;
+    color: #ffffff;
+    border: 1px solid #706209;
     box-shadow: none;
 }
 
@@ -1792,7 +1792,7 @@ code {
     font-size: 1rem;
     font-weight: 600;
     color: #fff;
-    background: linear-gradient(135deg, #6b5fb4, #483a73);
+    background: linear-gradient(135deg, #425f28, #c3c459);
     border: none;
     border-radius: 10px;
     cursor: pointer;
