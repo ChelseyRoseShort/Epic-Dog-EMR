@@ -30,13 +30,13 @@
                     type="button"
                     class="cell avatarclicks"
                     title="@($"Index: {idx} (r={idx / Cols}, c={idx % Cols})")"
-                    @onclick="() => { if (!hasFinding) CellClicked.InvokeAsync((idx, finding, false)); }">
+                    @onclick="() => { if (hasFinding) _openFindingIdx = (_openFindingIdx == idx ? null : (int?)idx); else CellClicked.InvokeAsync((idx, finding, false)); }">
           
 
             @if (hasFinding)
             {
                 <span class="finding-icon @GetGroupIconClass(finding.Type)" style="color:var(--pet-primary);"></span>
-            <div class="hover-finding"> 
+            <div class="hover-finding @(_openFindingIdx == idx ? "finding-active" : "")" @onclick:stopPropagation="true">
                     <div class="med-card">
                         <div class="med-card-header">
                             <h3><i class="fa-solid fa-staff-snake fa-lg" style="color: white;"></i>
@@ -60,7 +60,7 @@
                             </p>
                         </div>
                         <div class="med-card-footer">
-                     <button class="btn-confirm" @onclick:stopPropagation="true" @onclick="() => CellClicked.InvokeAsync((idx, finding, true))">Reassess</button>
+                     <button class="btn-confirm" @onclick:stopPropagation="true" @onclick="() => { _openFindingIdx = null; CellClicked.InvokeAsync((idx, finding, true)); }">Reassess</button>
                         </div>
                     </div>
                
@@ -85,6 +85,8 @@
     private int Total => Rows * Cols;
   
     [Parameter] public EventCallback<(int Index, AvatarDto? Finding, bool IsReassessment )> CellClicked { get; set; }
+
+    private int? _openFindingIdx;
 
 
     private static string addspaces(string input)
@@ -141,10 +143,10 @@ z-index:5;
 .grid{
         transform: rotateX(360deg);
 }
-.avatarclicks:hover .hover-finding {
-        opacity: 1;
-       
-        z-index: 600;
+.avatarclicks:hover .hover-finding,
+.finding-active {
+        opacity: 1 !important;
+        z-index: 600 !important;
 }
 .avatar-buttons-container {
 z-index:20;
