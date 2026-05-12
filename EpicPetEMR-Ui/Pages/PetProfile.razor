@@ -1234,25 +1234,24 @@ else if (pet == null)
     // public enum currentBodyMapKey => avatarMap[currentAvatarView];
     public BodyMapKey? currentBodyMapKey => avatarMap.TryGetValue(currentAvatarView, out var key) ? key : null;
     public BodyMapKey? currentBodyMapKeyForGrid => avatarMap.TryGetValue(currentAvatarView, out var key) ? key : null;
-    private void HandleAvatarClick((int index, AvatarDto? Finding) args)
+    private void HandleAvatarClick((int index, AvatarDto? Finding, bool IsReassessment) args)
     {
-        if (args.Finding is not null )
+        if (args.Finding is not null && args.IsReassessment == true)
         {
-            updateAvatarFinding.Assessment = DateTime.Now.ToString("g");
+            
+              updateAvatarFinding.Assessment = DateTime.Now.ToString("g");
             updateAvatarFinding.Id = args.Finding.Id;
             isOpenReassesmentForm = true;
-            return;
+            Console.WriteLine("Open reassessment form" + args.IsReassessment);
         }
-        else {
+        else if (args.Finding is null)
+        {
             _selectedIndex = args.index;
             _avatarIndex = args.index;
             _avatarRow = args.index / 10;
             _avatarCol = args.index % 10;
 
-            Console.WriteLine($"Clicked on index {_avatarIndex} at row {_avatarRow}, col {_avatarCol}");
             clickedGrid = args.index;
-
-
 
             newAvatarFinding = new CreateAvatarRequest
             {

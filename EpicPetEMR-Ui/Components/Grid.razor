@@ -30,7 +30,7 @@
                     type="button"
                     class="cell avatarclicks"
                     title="@($"Index: {idx} (r={idx / Cols}, c={idx % Cols})")"
-                    @onclick="() => CellClicked.InvokeAsync((idx, finding))">
+                    @onclick="() => { if (!hasFinding) CellClicked.InvokeAsync((idx, finding, false)); }">
           
 
             @if (hasFinding)
@@ -60,7 +60,7 @@
                             </p>
                         </div>
                         <div class="med-card-footer">
-                     
+                     <button class="btn-confirm" @onclick:stopPropagation="true" @onclick="() => CellClicked.InvokeAsync((idx, finding, true))">Reassess</button>
                         </div>
                     </div>
                
@@ -84,7 +84,7 @@
     [Parameter] public IReadOnlyList<AvatarDto> listOfFindings { get; set; } = Array.Empty<AvatarDto>();
     private int Total => Rows * Cols;
   
-    [Parameter] public EventCallback<(int Index, AvatarDto? Finding)> CellClicked { get; set; }
+    [Parameter] public EventCallback<(int Index, AvatarDto? Finding, bool IsReassessment )> CellClicked { get; set; }
 
 
     private static string addspaces(string input)
