@@ -11,7 +11,8 @@
       "Bash(ssh -i *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(ssh luke@23.165.136.138 \"bash /home/luke/chelsey/deploy.sh\")"
     ]
   }
 }

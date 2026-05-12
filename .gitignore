@@ -116,3 +116,4 @@ $RECYCLE.BIN/
 *.trace
 *.dmp
 *.stackdump
+.claude/settings.local.json
