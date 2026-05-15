@@ -275,6 +275,12 @@ else
         await LoadMarPageData();
     }
 
+    private static int HourDistance(int a, int b)
+    {
+        int diff = Math.Abs(a - b);
+        return Math.Min(diff, 24 - diff);
+    }
+
     private async Task LoadMarPageData()
     {
         isLoading = true;
@@ -297,8 +303,8 @@ else
 
             meds = allmeds
                 .Where(m => !IsPrn(m.Frequency) &&
-                            !completedAtHour.Contains(m.Id))
-                .OrderBy(m => Math.Abs(GetScheduledHour(m) - hour))
+                            !completedAtHour.Contains(m.Id) &&
+                            HourDistance(GetScheduledHour(m), hour) <= 1)
                 .ToList();
 
             prnmeds = allmeds

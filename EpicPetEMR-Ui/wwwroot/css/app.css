@@ -705,7 +705,7 @@ body {
 }
 
 .mar-page-container .epic-pet-button.epic-pet-button-outlined {
-    background: transparent;
+    background: rgba(33, 77, 53, 0.65) ;
     color: #ffffff;
     border: 1px solid #706209;
     box-shadow: none;
