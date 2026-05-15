@@ -210,7 +210,7 @@ public sealed class MedicationScheduleService
     {
         Console.WriteLine($"GetIntervalHours({freq})");
 
-        return freq switchs
+        return freq switch
         {
             Frequency.OnceAMonth => 730,
             Frequency.TwiceADay => 12,
