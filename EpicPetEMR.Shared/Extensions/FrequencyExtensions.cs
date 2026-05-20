@@ -20,7 +20,7 @@ public static class FrequencyExtensions
             Frequency.AsNeededEverySixHours => 6,
             Frequency.AsNeededEveryTwelveHours => 12,
 
-            Frequency.OnceAMonth => 24 * 30,
+            Frequency.OnceAMonth => 730,
 
             _ => 24,
         };

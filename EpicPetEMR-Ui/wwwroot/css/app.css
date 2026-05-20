@@ -643,6 +643,24 @@ body {
     color: #ffffff;
 }
 
+.mar-med-card--locked {
+    opacity: 0.55;
+    pointer-events: none;
+    background: #f1f5f9;
+    filter: grayscale(0.4);
+}
+
+.mar-med-card-prn.mar-med-card--locked {
+    border-left-color: #94a3b8;
+}
+
+.mar-chip-locked {
+    background: #e2e8f0;
+    color: #475569;
+    border: 1px solid #cbd5f5;
+    font-style: italic;
+}
+
 /* Empty state */
 
 .mar-empty {

@@ -111,13 +111,28 @@ namespace EpicPetEMR.Controllers
         [HttpPost("given")]
         public async Task<IActionResult> MarkGiven([FromBody] List<MARHistoryDto> list)
         {
+            var now = DateTime.Now;
+
             foreach (var dto in list)
             {
                 var entity = dto.ToEntity();
-                // entity.TimeRecorded = DateTime.UtcNow;
-                entity.TimeRecorded = DateTime.Now;  // 👈 use local time
-
+                entity.TimeRecorded = now;
                 _db.MARHistory.Add(entity);
+            }
+
+            var givenMedIds = list
+                .Where(d => d.Action == MedicationAction.Given)
+                .Select(d => d.MedId)
+                .ToHashSet();
+
+            if (givenMedIds.Count > 0)
+            {
+                var meds = await _db.Medications
+                    .Where(m => givenMedIds.Contains(m.Id))
+                    .ToListAsync();
+
+                foreach (var med in meds)
+                    med.LastGiven = now;
             }
 
             await _db.SaveChangesAsync();

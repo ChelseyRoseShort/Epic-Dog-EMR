@@ -1,4 +1,5 @@
 ﻿using EpicPetEMR_Ui.ViewModels;
+using EpicPetEMR.Shared.Extensions;
 using EpicPetEMR.Shared.Models;
 
 namespace EpicPetEMR_Ui.Services;
@@ -54,9 +55,9 @@ public sealed class MedicationScheduleService
                     continue;
                 }
 
-                if (IsPrn(med.Frequency))
+                if (med.Frequency.IsPrn())
                 {
-             
+
                     continue;
                 }
 
@@ -68,7 +69,7 @@ public sealed class MedicationScheduleService
 
                 Console.WriteLine($"Start Date: {med.StartDate}, Start Time: {med.StartTime}");
 
-                int interval = GetIntervalHours(med.Frequency);
+                int interval = med.Frequency.GetIntervalHours();
                 Console.WriteLine($"Interval Hours: {interval}");
 
                 var doses = GenerateDoseTimes(
@@ -206,39 +207,9 @@ public sealed class MedicationScheduleService
         return result;
     }
 
-    public int GetIntervalHours(Frequency freq)
-    {
-        Console.WriteLine($"GetIntervalHours({freq})");
-
-        return freq switch
-        {
-            Frequency.OnceAMonth => 730,
-            Frequency.TwiceADay => 12,
-            Frequency.ThreeTimesADay => 8,
-            Frequency.FourTimesADay => 6,
-            Frequency.OnceInMorning => 24,
-            Frequency.OnceInEvening => 24,
-
-            Frequency.AsNeededEveryTwoHours => 2,
-            Frequency.AsNeededEveryFourHours => 4,
-            Frequency.AsNeededEverySixHours => 6,
-            Frequency.AsNeededEveryTwelveHours => 12,
-
-            _ => 24
-        };
-    }
-
-    public bool IsPrn(Frequency freq)
-    {
-        bool result = freq.ToString().StartsWith("AsNeeded");
-        Console.WriteLine($"IsPrn({freq}) => {result}");
-        return result;
-    }
-
     public bool IsPrnDoseTooEarly(DateTime lastGiven, Frequency freq)
     {
-        int interval = GetIntervalHours(freq);
-        var nextAllowed = lastGiven.AddHours(interval);
+        var nextAllowed = lastGiven.AddHours(freq.GetIntervalHours());
         bool tooEarly = DateTime.Now < nextAllowed;
 
         Console.WriteLine($"IsPrnDoseTooEarly: last={lastGiven}, nextAllowed={nextAllowed}, tooEarly={tooEarly}");

@@ -1,10 +1,12 @@
 ﻿@page "/mar/task/{petId:int}/{hour:int}"
 @using EpicPetEMR_Ui.Services
 @using EpicPetEMR.Shared.Models
+@using EpicPetEMR.Shared.Extensions
 @using Microsoft.AspNetCore.Components.Forms
 @using EpicPetEMR_Ui.Modals
 @inject PetApi Api
 @inject NavigationManager Nav
+@using System.Text.RegularExpressions
 
 @if (isLoading)
 {
@@ -85,8 +87,8 @@ else
                                 </h3>
                                 <p class="mar-med-details">
                                     @($"{med.DoseValue:0.##}") @med.DoseType &bull;
-                                    @med.Route &bull;
-                                    @med.Frequency
+                                    @addspaces(med.Route.ToString()) &bull;
+                                    @addspaces(med.Frequency.ToString())
                                 </p>
 
                                 <div class="mar-med-meta">
@@ -123,10 +125,12 @@ else
                 {
                     @foreach (var med in prnmeds)
                     {
-                        <article class="mar-med-card mar-med-card-prn">
+                        var tooEarly = IsPrnTooEarly(med);
+                        <article class="mar-med-card mar-med-card-prn @(tooEarly ? "mar-med-card--locked" : "")">
                             <label class="mar-med-checkbox">
                                 <input type="checkbox"
                                        class="mar-checkbox"
+                                       disabled="@tooEarly"
                                        @onchange="e => ToggleSelected(pet.Id, med.Id, hour, e)" />
                                 <span class="mar-checkbox-custom"></span>
                             </label>
@@ -138,18 +142,24 @@ else
                                 </h3>
                                 <p class="mar-med-details">
                                     @($"{med.DoseValue:0.##}") @med.DoseType &bull;
-                                    @med.Route &bull;
-                                    @med.Frequency
+                                    @addspaces(med.Route.ToString()) &bull;
+                                    @addspaces(med.Frequency.ToString())
                                 </p>
 
-                                @if (med.LastGiven != null)
-                                {
-                                    <div class="mar-med-meta">
+                                <div class="mar-med-meta">
+                                    @if (tooEarly)
+                                    {
+                                        <span class="mar-chip mar-chip-locked">
+                                            Too close to last dose &mdash; next due @NextPrnDoseAt(med)
+                                        </span>
+                                    }
+                                    else if (med.LastGiven != null)
+                                    {
                                         <span class="mar-chip mar-chip-muted">
                                             Last given: @med.LastGiven
                                         </span>
-                                    </div>
-                                }
+                                    }
+                                </div>
                             </div>
                         </article>
                     }
@@ -262,6 +272,13 @@ else
     public bool IsPrn(Frequency freq)
         => freq.ToString().StartsWith("AsNeeded");
 
+    private bool IsPrnTooEarly(MedicationDto med) =>
+        med.LastGiven != null &&
+        (DateTime.Now - med.LastGiven.Value).TotalHours < med.Frequency.GetIntervalHours();
+
+    private string NextPrnDoseAt(MedicationDto med) =>
+        med.LastGiven?.AddHours(med.Frequency.GetIntervalHours()).ToString("h:mm tt") ?? "";
+
     private int GetScheduledHour(MedicationDto med)
     {
         if (med.StartTime is null)
@@ -304,12 +321,13 @@ else
             meds = allmeds
                 .Where(m => !IsPrn(m.Frequency) &&
                             !completedAtHour.Contains(m.Id) &&
-                            HourDistance(GetScheduledHour(m), hour) <= 1)
+                            HourDistance(GetScheduledHour(m), hour) <= 1 &&
+                            (m.LastGiven == null ||
+                             (DateTime.Now - m.LastGiven.Value).TotalHours >= m.Frequency.GetIntervalHours()))
                 .ToList();
 
             prnmeds = allmeds
-                .Where(m => IsPrn(m.Frequency) &&
-                            !completedAtHour.Contains(m.Id))
+                .Where(m => IsPrn(m.Frequency))
                 .ToList();
         }
         catch (Exception ex)
@@ -414,5 +432,14 @@ else
 
         await LoadGivenForPastYear();
         Nav.NavigateTo("/");
+    }
+
+    private static string addspaces(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return input;
+
+        return Regex.Replace(input,
+            @"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])",
+            " ");
     }
 }
