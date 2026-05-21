@@ -217,13 +217,13 @@ else
         }
         else {
 
-     
+             <h3>History</h3>
            @foreach (var history in _marHistory)
         {
             <div class="mar-med-content">
-                <h3>History</h3>
+               
           
-                <p class="mar-med-details">
+                <p class="mar-med-details" style="font-weight: bold">
                    @allmeds.FirstOrDefault(x => x.Id == history.MedId)?.Name
                 </p>
                 @if (@history.Reason is not null)

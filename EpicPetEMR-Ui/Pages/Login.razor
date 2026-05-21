@@ -16,6 +16,7 @@
         <input class="login-input" placeholder="Email" type="email" @bind="Model.Email" />
         <input class="login-input" placeholder="Password" type="password" @bind="Model.Password" />
         <button class="login-btn-primary" @onclick="DoLogin">Login</button>
+        <button class="login-btn-primary" @onclick="DoDemo">Demo</button>
 
         @if (!string.IsNullOrWhiteSpace(Message))
         {
@@ -47,5 +48,12 @@
         {
             Message = ex.Message;
         }
+    }
+
+    private async Task DoDemo()
+    {
+        Model.Email = "demo@demo.com";
+        Model.Password = "ThisIsADemo123*";
+        await DoLogin();
     }
 }
