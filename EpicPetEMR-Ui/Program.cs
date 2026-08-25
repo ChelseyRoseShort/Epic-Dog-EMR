@@ -14,8 +14,11 @@ builder.Services.AddTransient<AuthRedirectHandler>();
 builder.Services.AddTransient<AuthHeaderHandler>();
 
 // Authenticated HttpClient
+var apiBaseAddress = builder.Configuration["ApiBaseAddress"]
+    ?? "https://petchanceemr.chelseyshort.com/";
+
 builder.Services.AddHttpClient("AuthenticatedClient", client =>
-    client.BaseAddress = new Uri("https://petchanceemr.chelseyshort.com/"))
+    client.BaseAddress = new Uri(apiBaseAddress))
     .AddHttpMessageHandler<AuthRedirectHandler>()
     .AddHttpMessageHandler<AuthHeaderHandler>();
 

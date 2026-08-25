@@ -4,20 +4,25 @@
 @using EpicPetEMR_Ui.ViewModels
 @using static EpicPetEMR_Ui.Services.MedicationScheduleService
 @using EpicPetEMR_Ui.Modals
+@implements IDisposable
 @inject PetApi Api
 @inject MedicationScheduleService Scheduler
 @inject NavigationManager Nav
 @inject FamilyApi FamilyApi
 
 
-<div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+<div class="shift-row">
 
-    <label style="font-weight: bold;">Shift:</label>
+    <label class="shift-label">Shift:</label>
 
-    <select @onchange="OnShiftChanged" style="padding:8px; font-size:1rem;">
-        <option value="day" selected="@(_shift == "day")">Day (07:00–19:00)</option>
-        <option value="night" selected="@(_shift == "night")">Night (20:00–06:00)</option>
-    </select>
+    <label class="shift-toggle">
+        <input type="checkbox" checked="@(_shift == "night")" @onchange="OnShiftToggle" />
+        <span class="shift-toggle-track">
+            <span class="shift-toggle-thumb"></span>
+        </span>
+    </label>
+
+    <span class="shift-toggle-text">@(_shift == "night" ? "Night (20:00–06:00)" : "Day (07:00–19:00)")</span>
 </div>
  <AddVetTrip IsOpen="isAddDocumentOpen"
                        Title="Upload Veterinary Trip Document"
@@ -119,9 +124,14 @@
 </div>
 
 <!-- Desktop grid (hidden on mobile via CSS) -->
-<div class="board">
+<div class="board @(_shift == "night" ? "night-mode" : "")">
 
     <div class="grid" style="grid-template-columns:@GridTemplateColumns">
+
+        @if (CurrentTimeBarStyle is not null)
+        {
+            <div class="current-time-bar" style="@CurrentTimeBarStyle"></div>
+        }
 
         <div class="cell header sticky-left corner">Patient</div>
 
@@ -198,7 +208,7 @@
                         else
                         {
                             <div class="task-wrap">
-                                <i class="fa-solid fa-prescription-bottle fa-2xl task-icon" style="color:#193020 !important;"></i>
+                                <i class="fa-solid fa-prescription-bottle fa-2xl task-icon" style="color:#0e2817 !important;"></i>
                                 <div class="task-badge">
                                     <button class="button-plain" @onclick="() => GoToMAR(p.Pet.Id, h)">
                                         @foreach (var med in dueMeds)
@@ -218,7 +228,7 @@
                         <div class="task-wrap vettrip-wrap">
                             <button class="button-plain vettrip-button"
                                     @onclick="() => GoToVetTrip(p.Pet.Id, h, vetTrips.FirstOrDefault()?.Id ?? 0)">
-                                <i class="fa-solid fa-hospital fa-xl vettrip-icon" style="color:#193020"></i>
+                                <i class="fa-solid fa-hospital fa-xl vettrip-icon" style="color:#0e2817"></i>
 
                                 @foreach (var trip in vetTrips)
                                 {
@@ -453,9 +463,51 @@
     private string GridTemplateColumns =>
         $"var(--left-col) repeat({Hours.Count}, var(--cell))";
 
+    private System.Threading.Timer? _clockTimer;
+
+    private static bool IsUtcNightHour(int utcHour) => utcHour >= 20 || utcHour < 7;
+
+    private string? CurrentTimeBarStyle
+    {
+        get
+        {
+            var now = DateTime.Now;
+            var idx = Hours.IndexOf(now.Hour);
+            if (idx < 0)
+                return null;
+
+            var offset = idx + (now.Minute / 60.0);
+            var offsetStr = offset.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return $"left: calc(var(--left-col) + {offsetStr} * var(--cell));";
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        if (IsUtcNightHour(DateTime.UtcNow.Hour))
+        {
+            _shift = "night";
+            StartHour = 20;
+            EndHour = 6;
+        }
+        else
+        {
+            _shift = "day";
+            StartHour = 7;
+            EndHour = 19;
+        }
+
         await Load();
+
+        _clockTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+    }
+
+    public void Dispose()
+    {
+        _clockTimer?.Dispose();
     }
 
     private async Task Load()
@@ -493,11 +545,12 @@
         }
     }
 
-    private async Task OnShiftChanged(ChangeEventArgs e)
+    private async Task OnShiftToggle(ChangeEventArgs e)
     {
-        _shift = e.Value?.ToString()?.ToLower() ?? "day";
+        var isNight = e.Value is bool b && b;
+        _shift = isNight ? "night" : "day";
 
-        if (_shift == "night")
+        if (isNight)
         {
             StartHour = 20;
             EndHour = 6;

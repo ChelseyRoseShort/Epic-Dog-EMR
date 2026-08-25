@@ -1,4 +1,4 @@
-﻿using EpicPetEMR_Ui.ViewModels;
+using EpicPetEMR_Ui.ViewModels;
 using EpicPetEMR.Shared.Extensions;
 using EpicPetEMR.Shared.Models;
 
@@ -8,7 +8,7 @@ public sealed class MedicationScheduleService
 {
     public record MedScheduleItem(int MedId, string Name)
     {
-        public bool IsCompleted { get; init; }  
+        public bool IsCompleted { get; init; }
     }
 
     public Dictionary<int, Dictionary<int, List<MedScheduleItem>>> BuildBrainSchedule(
@@ -17,11 +17,6 @@ public sealed class MedicationScheduleService
         int endHour,
         List<MARHistoryDto> marHistory)
     {
-        Console.WriteLine("=== BUILDING BRAIN SCHEDULE ===");
-        Console.WriteLine($"Shift Window: {startHour}:00 → {endHour}:00");
-        Console.WriteLine($"Pets Count: {pets.Count}");
-        Console.WriteLine("--------------------------------");
-
         // (PetId, MedId, Hour) → completed
         var completed = new HashSet<(int PetId, int MedId, int Hour)>(
             marHistory
@@ -31,46 +26,35 @@ public sealed class MedicationScheduleService
                 .Select(h => (h.PetId, h.MedId, h.Hour))
         );
 
-
         var tasks = new Dictionary<int, Dictionary<int, List<MedScheduleItem>>>();
 
         foreach (var p in pets)
         {
             var petId = p.Pet.Id;
-            Console.WriteLine($"\n--- PET {petId}: {p.Pet.Name} ---");
 
             if (p.Medications.Count == 0)
             {
-                Console.WriteLine("No medications for this pet.");
                 continue;
             }
 
             foreach (var med in p.Medications)
             {
-                Console.WriteLine($"\nChecking Medication: {med.Name} (ID {med.Id})");
-
                 if (!med.IsActive)
                 {
-                   
                     continue;
                 }
 
                 if (med.Frequency.IsPrn())
                 {
-
                     continue;
                 }
 
                 if (med.StartDate is null || med.StartTime is null)
                 {
-              
                     continue;
                 }
 
-                Console.WriteLine($"Start Date: {med.StartDate}, Start Time: {med.StartTime}");
-
                 int interval = med.Frequency.GetIntervalHours();
-                Console.WriteLine($"Interval Hours: {interval}");
 
                 var doses = GenerateDoseTimes(
                     med.StartDate.Value,
@@ -80,21 +64,14 @@ public sealed class MedicationScheduleService
                     endHour
                 );
 
-                Console.WriteLine($"Generated {doses.Count} dose times:");
-                foreach (var d in doses)
-                    Console.WriteLine($"  → {d} (hour {d.Hour})");
-
                 foreach (var dose in doses)
                 {
                     int hour = dose.Hour;
 
                     if (!IsHourInRange(hour, startHour, endHour))
                     {
-           
                         continue;
                     }
-
-
 
                     if (!tasks.TryGetValue(petId, out var perHour))
                     {
@@ -112,33 +89,11 @@ public sealed class MedicationScheduleService
 
                     list.Add(new MedScheduleItem(med.Id, med.Name)
                     {
-                        IsCompleted = isCompleted      
+                        IsCompleted = isCompleted
                     });
-
-                    Console.WriteLine(
-                        $"Added PET {petId}, HOUR {hour}, MED {med.Name}, IsCompleted={isCompleted}"
-                    );
                 }
             }
         }
-
-
-        foreach (var petEntry in tasks)
-        {
-            Console.WriteLine($"Pet {petEntry.Key}:");
-
-            foreach (var hourEntry in petEntry.Value)
-            {
-                Console.WriteLine($"  Hour {hourEntry.Key}:");
-
-                foreach (var item in hourEntry.Value)
-                {
-                    Console.WriteLine($"    - {item.Name} (ID {item.MedId})");
-                }
-            }
-        }
-
- 
 
         return tasks;
     }
@@ -150,9 +105,6 @@ public sealed class MedicationScheduleService
      int startHour,
      int endHour)
     {
-        Console.WriteLine($"Generating dose times...");
-        Console.WriteLine($"Start: {startDate} {startTime}, Interval: {intervalHours} hours");
-
         var results = new List<DateTime>();
 
         var firstDose = startDate.ToDateTime(startTime);
@@ -163,31 +115,19 @@ public sealed class MedicationScheduleService
             ? today.AddHours(endHour)
             : today.AddDays(1).AddHours(endHour);
 
-        Console.WriteLine($"Window: {windowStart} → {windowEnd}");
-
-       
         var current = firstDose;
         while (current < windowStart.AddHours(-intervalHours))
         {
             current = current.AddHours(intervalHours);
         }
 
-        Console.WriteLine($"Aligned Current Dose Start: {current}");
-
         var lastPossible = windowEnd.AddHours(intervalHours);
 
         while (current <= lastPossible)
         {
-            Console.WriteLine($"  Checking {current}");
-
             if (current >= windowStart && current <= windowEnd)
             {
-            
                 results.Add(current);
-            }
-            else
-            {
-                Console.WriteLine($" Outside window");
             }
 
             current = current.AddHours(intervalHours);
@@ -199,21 +139,14 @@ public sealed class MedicationScheduleService
 
     private bool IsHourInRange(int hour, int start, int end)
     {
-        bool result = start <= end
+        return start <= end
             ? hour >= start && hour <= end
             : hour >= start || hour <= end;
-
-        Console.WriteLine($"IsHourInRange({hour}, {start}, {end}) => {result}");
-        return result;
     }
 
     public bool IsPrnDoseTooEarly(DateTime lastGiven, Frequency freq)
     {
         var nextAllowed = lastGiven.AddHours(freq.GetIntervalHours());
-        bool tooEarly = DateTime.Now < nextAllowed;
-
-        Console.WriteLine($"IsPrnDoseTooEarly: last={lastGiven}, nextAllowed={nextAllowed}, tooEarly={tooEarly}");
-
-        return tooEarly;
+        return DateTime.Now < nextAllowed;
     }
 }

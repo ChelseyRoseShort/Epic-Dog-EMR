@@ -6,6 +6,9 @@
 @using EpicPetEMR_Ui.Modals
 @inject PetApi Api
 @inject NavigationManager Nav
+@inject MedicationScheduleService Scheduler
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 @using System.Text.RegularExpressions
 
 @if (isLoading)
@@ -279,17 +282,48 @@ else
     private string NextPrnDoseAt(MedicationDto med) =>
         med.LastGiven?.AddHours(med.Frequency.GetIntervalHours()).ToString("h:mm tt") ?? "";
 
-    private int GetScheduledHour(MedicationDto med)
+    private List<int> GetScheduledHoursForToday(MedicationDto med)
     {
-        if (med.StartTime is null)
-            return 0;
+        if (med.StartDate is null || med.StartTime is null)
+            return new List<int>();
 
-        return med.StartTime.Value.Hour;
+        int interval = med.Frequency.GetIntervalHours();
+
+        return Scheduler
+            .GenerateDoseTimes(med.StartDate.Value, med.StartTime.Value, interval, 0, 23)
+            .Select(d => d.Hour)
+            .ToList();
     }
 
     protected override async Task OnInitializedAsync()
     {
         await LoadMarPageData();
+    }
+
+    private DotNetObjectReference<MAR>? _escapeRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _escapeRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("keyNav.registerEscape", _escapeRef);
+        }
+    }
+
+    [JSInvokable]
+    public void OnEscapePressed()
+    {
+        Nav.NavigateTo($"/petprofile/{PetId}");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_escapeRef is not null)
+        {
+            await JS.InvokeVoidAsync("keyNav.unregisterEscape");
+            _escapeRef.Dispose();
+        }
     }
 
     private static int HourDistance(int a, int b)
@@ -321,7 +355,7 @@ else
             meds = allmeds
                 .Where(m => !IsPrn(m.Frequency) &&
                             !completedAtHour.Contains(m.Id) &&
-                            HourDistance(GetScheduledHour(m), hour) <= 1 &&
+                            GetScheduledHoursForToday(m).Any(h => HourDistance(h, hour) <= 1) &&
                             (m.LastGiven == null ||
                              (DateTime.Now - m.LastGiven.Value).TotalHours >= m.Frequency.GetIntervalHours()))
                 .ToList();

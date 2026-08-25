@@ -24,17 +24,27 @@
                <i style="margin-right:10px;"  class="fa-solid fa-circle-user fa-2xl"></i>Login
             </NavLink>
         </div>
-       
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="families">
                <i style="margin-right:10px;"  class="fa-solid fa-people-roof fa-2xl"></i>Family
             </NavLink>
+        </div>
+
+        <div class="mobile-signed-in">
+            <p class="signed-in-button">Signed in as: @SignedInLabel</p>
+            <button @onclick="OnSignOut" class="mobile-sign-out-btn">
+                Sign out
+            </button>
         </div>
     </nav>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
+
+    [Parameter] public string SignedInLabel { get; set; } = "(not signed in)";
+    [Parameter] public EventCallback OnSignOut { get; set; }
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 

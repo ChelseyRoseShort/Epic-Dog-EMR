@@ -4,7 +4,7 @@
 {
     <div class="modal-backdrop">
         <div class="modal-box">
-            <div class="modal-header">
+            <div class="modal-header @HeaderClass">
                 <h3>@Title</h3>
                 <button class="close-btn" @onclick="OnClose">&times;</button>
             </div>
@@ -14,7 +14,7 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn-confirm" @onclick="OnConfirm">Save</button>
+                <button class="@ConfirmClass" @onclick="OnConfirm">@ConfirmLabel</button>
                 <button class="btn-cancel" @onclick="OnClose">Cancel</button>
             </div>
         </div>
@@ -27,4 +27,7 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnConfirm { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string ConfirmLabel { get; set; } = "Save";
+    [Parameter] public string ConfirmClass { get; set; } = "btn-confirm";
+    [Parameter] public string HeaderClass { get; set; } = "";
 }

@@ -65,12 +65,9 @@ else
                                 @foreach (var pet in pets)
                                 {
                                     <div class="mar-med-meta" style="margin-bottom: 0.25rem;">
-                                        <span class="mar-chip mar-chip-muted">@pet.Name</span>
-                                        <span class="mar-chip mar-chip-primary">@pet.Species</span>
-                                        @if (!string.IsNullOrWhiteSpace(pet.Breed))
-                                        {
-                                            <span class="mar-chip mar-chip-muted">@pet.Breed</span>
-                                        }
+                                        <span class="mar-chip mar-chip-muted">
+                                            @pet.Name &bull; @pet.Species@(string.IsNullOrWhiteSpace(pet.Breed) ? "" : $" ({pet.Breed})")
+                                        </span>
                                     </div>
                                 }
                             }

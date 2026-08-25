@@ -152,8 +152,8 @@ body {
 }
 
 .navbar-brand {
-    color: #b79f2d !important;
-    background-color: white;
+    color: white !important;
+    background-color: #0e2817;
     padding: 20px;
     text-align: center;
     border-radius: 0px 0px 20px 20px;
@@ -1376,6 +1376,11 @@ a,
     color: #0071c1;
 }
 
+a:hover,
+.btn-link:hover {
+    color: #ecd46a !important;
+}
+
 .btn-primary {
     color: var(--pet-primary-dark);
     margin-bottom: 1rem !important;
@@ -1721,8 +1726,7 @@ code {
 }
 
 .content {
-    max-width: 90vw;
-    overflow: scroll;
+    max-width: 100%;
 }
 
 /* Top-left corner (fixed for both directions) */
@@ -1734,6 +1738,89 @@ code {
     /* above everything */
     background: var(--bg-header);
     font-weight: 700;
+}
+
+/* Shift row + toggle switch on Brain page */
+.shift-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.shift-label {
+    font-weight: bold;
+}
+
+.shift-toggle {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.shift-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.shift-toggle-track {
+    position: absolute;
+    inset: 0;
+    background: #ecd46a;
+    border-radius: 999px;
+    transition: background 0.2s ease;
+}
+
+.shift-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #193020;
+    transition: transform 0.2s ease;
+}
+
+.shift-toggle input:checked+.shift-toggle-track {
+    background: #193020;
+}
+
+.shift-toggle input:checked+.shift-toggle-track .shift-toggle-thumb {
+    transform: translateX(24px);
+    background: #ecd46a;
+}
+
+.shift-toggle-text {
+    font-weight: 600;
+}
+
+/* Current-time indicator bar on the Brain grid */
+.current-time-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #ecd46a;
+    box-shadow: 0 0 8px rgba(236, 212, 106, 0.8);
+    z-index: 8;
+    pointer-events: none;
+}
+
+/* Night shift: only the header row/corner gets the dark green + gold treatment */
+.board.night-mode .header,
+.board.night-mode .corner {
+    background: #193020;
+    color: #ecd46a;
+}
+
+.board a {
+    color: #0e2817;
 }
 
 /* modal-overlay / modal-box / modal-backdrop defined in Unified Modal System above */

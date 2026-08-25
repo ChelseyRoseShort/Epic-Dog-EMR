@@ -75,10 +75,41 @@
         /* Never collapse the sidebar for wide screens */
         display: block;
     }
-    
+
     .nav-scrollable {
         /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
+        height: calc(100vh - 94px);
         overflow-y: auto;
     }
+}
+
+.mobile-signed-in {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 1rem 0.75rem 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@media (min-width: 641px) {
+    .mobile-signed-in {
+        display: none;
+    }
+}
+
+.mobile-signed-in .signed-in-button {
+    margin: 0;
+}
+
+.mobile-sign-out-btn {
+    background-color: #b79f2d;
+    color: white;
+    border: 2px solid white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
 }

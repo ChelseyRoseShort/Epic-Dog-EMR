@@ -71,10 +71,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnMessageReceived = ctx =>
             {
                 var header = ctx.Request.Headers["Authorization"].ToString();
-                Console.WriteLine($"[JWT RAW RECEIVED] '{header}'");
                 if (header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                     ctx.Token = header["Bearer ".Length..].Trim();
-                Console.WriteLine($"[JWT TOKEN EXTRACTED] '{ctx.Token}'");
                 return Task.CompletedTask;
             },
         };
@@ -87,10 +85,6 @@ builder.Services.AddControllers()
         opts.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
 var app = builder.Build();
-
-Console.WriteLine($"[DEBUG] JWT Key: {app.Configuration["Jwt:Key"]}");
-Console.WriteLine($"[DEBUG] JWT Issuer: {app.Configuration["Jwt:Issuer"]}");
-Console.WriteLine($"[DEBUG] JWT Audience: {app.Configuration["Jwt:Audience"]}");
 
 // Middleware pipeline
 app.UseCors();

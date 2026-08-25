@@ -5,12 +5,12 @@
 @using System.IdentityModel.Tokens.Jwt
 <div class="page">
     <div class="sidebar">
-        <NavMenu />
+        <NavMenu SignedInLabel="@_label" OnSignOut="HandleSignOut" />
     </div>
 
     <main>
         <div class="top-row px-4" style="background-color:#0e2817;">
-            <div style="display:flex; align-items:center">
+            <div class="top-row-signed-in" style="display:flex; align-items:center">
             <p class="signed-in-button">Signed in as: @_label</p>
             <button @onclick="HandleSignOut" style="
                     background-color: #b79f2d;

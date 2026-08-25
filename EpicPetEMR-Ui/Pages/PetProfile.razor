@@ -1039,30 +1039,16 @@ else if (pet == null)
             </div>
         </AddVetTrip>
 
-        @if (showDeleteConfirm)
-        {
-            <div class="modal-backdrop">
-                <div class="modal-content">
-                    <div class="modal-header warning">
-                        <h4>Delete Medication</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to remove <strong>@medToDelete?.Name</strong>?</p>
-                        <small>This action cannot be undone.</small>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn-text"
-                                @onclick="() => showDeleteConfirm = false">
-                            Cancel
-                        </button>
-                        <button class="btn-danger"
-                                @onclick="DeleteMed">
-                            Yes, Delete
-                        </button>
-                    </div>
-                </div>
-            </div>
-        }
+        <AddMedication IsOpen="showDeleteConfirm"
+                       Title="Delete Medication"
+                       HeaderClass="warning"
+                       ConfirmLabel="Yes, Delete"
+                       ConfirmClass="btn-danger"
+                       OnClose="() => showDeleteConfirm = false"
+                       OnConfirm="DeleteMed">
+            <p>Are you sure you want to remove <strong>@medToDelete?.Name</strong>?</p>
+            <small>This action cannot be undone.</small>
+        </AddMedication>
     }
 </div>
 <Form IsOpen="isAvatarFormOpen"
@@ -1153,42 +1139,19 @@ else if (pet == null)
         </div>
          </Form>
 
-         @if (showAvatarDeleteConfirm)
-        {
-        
-             <div class="modal-backdrop">
-        <div class="modal-content">
-            <div class="modal-header warning">
-                <h4>Delete Finding</h4>
-            </div>
-
-            <EditForm Model="this" OnValidSubmit="DeleteAvatar">
-                <DataAnnotationsValidator />
-
-                <div class="modal-body">
-                    <p>
-                        Are you sure you want to remove
-                        <strong>@newAvatarFinding?.Type</strong>?
-                    </p>
-                    <small>This action cannot be undone.</small>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button"
-                            class="btn-text"
-                            @onclick="() => showAvatarDeleteConfirm = false">
-                        Cancel
-                    </button>
-
-                    <button type="submit"
-                            class="btn-danger">
-                        Yes, Delete
-                    </button>
-                </div>
-            </EditForm>
-        </div>
-    </div>
-        }
+        <AddMedication IsOpen="showAvatarDeleteConfirm"
+                       Title="Delete Finding"
+                       HeaderClass="warning"
+                       ConfirmLabel="Yes, Delete"
+                       ConfirmClass="btn-danger"
+                       OnClose="() => showAvatarDeleteConfirm = false"
+                       OnConfirm="DeleteAvatar">
+            <p>
+                Are you sure you want to remove
+                <strong>@newAvatarFinding?.Type</strong>?
+            </p>
+            <small>This action cannot be undone.</small>
+        </AddMedication>
 
 @code {
     [Parameter] public int Id { get; set; }
